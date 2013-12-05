@@ -9,7 +9,7 @@
 	It is used to show that communications are working.
 */
 
-#include "LIB_GT511C3.h"
+#include "FPS_GT511C3.h"
 #include "SoftwareSerial.h"
 
 // Hardware setup - FPS connected to:
@@ -18,7 +18,6 @@
 //		this brings the 5v tx line down to about 3.2v so we dont fry our fps
 
 FPS_GT511C3 fps(4, 5);
-SoftwareSerial lcd(2, 3);
 
 void setup()
 {
