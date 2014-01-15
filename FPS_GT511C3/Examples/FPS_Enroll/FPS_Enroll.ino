@@ -34,8 +34,8 @@ void Enroll()
 
 	// find open enroll id
 	int enrollid = 0;
-	bool okid = false;
-	while (okid == false)
+	bool okid = true;
+	while (okid == true)
 	{
 		okid = fps.CheckEnrolled(enrollid);
 		if (okid==true) enrollid++;
