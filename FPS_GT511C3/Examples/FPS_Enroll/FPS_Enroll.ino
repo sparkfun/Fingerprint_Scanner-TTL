@@ -38,7 +38,8 @@ void Enroll()
 	while (okid == false)
 	{
 		okid = fps.CheckEnrolled(enrollid);
-		if (okid==false) enrollid++;
+		if (okid==true) enrollid++;
+		else break;
 	}
 	fps.EnrollStart(enrollid);
 
