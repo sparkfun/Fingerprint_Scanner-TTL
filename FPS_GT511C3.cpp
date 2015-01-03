@@ -555,6 +555,7 @@ int FPS_GT511C3::Verify1_1(int id)
 	int retval = 0;
 	if (rp->ACK == false)
 	{
+		retval = 3; // set default value of not verified
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_INVALID_POS) retval = 1;
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_IS_NOT_USED) retval = 2;
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_VERIFY_FAILED) retval = 3;
