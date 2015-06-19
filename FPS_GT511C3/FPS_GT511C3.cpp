@@ -121,8 +121,10 @@ Response_Packet::ErrorCodes::Errors_Enum Response_Packet::ErrorCodes::ParseFromB
 	if (high == 0x00)
 	{
 	}
-	if (high == 0x01)
-	{
+	// grw 01/03/15 - replaced if clause with else clause for any non-zero high byte
+	// if (high == 0x01)
+	// {
+	else {
 		switch(low)
 		{
 			case 0x00: e = NO_ERROR; break;
@@ -555,6 +557,7 @@ int FPS_GT511C3::Verify1_1(int id)
 	int retval = 0;
 	if (rp->ACK == false)
 	{
+		retval = 3; // grw 01/03/15 - set default value of not verified before assignment
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_INVALID_POS) retval = 1;
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_IS_NOT_USED) retval = 2;
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_VERIFY_FAILED) retval = 3;
