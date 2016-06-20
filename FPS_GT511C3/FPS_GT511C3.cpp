@@ -1,4 +1,4 @@
-/* 
+/*
 	FPS_GT511C3.h v1.0 - Library for controlling the GT-511C3 Finger Print Scanner (FPS)
 	Created by Josh Hawley, July 23rd 2013
 	Licensed for non-commercial use, must include this license message
@@ -15,7 +15,7 @@
 byte* Command_Packet::GetPacketBytes()
 {
 	byte* packetbytes= new byte[12];
-	
+
 	// update command before calculating checksum (important!)
 	word cmd = Command;
 	command[0] = GetLowByte(cmd);
@@ -99,7 +99,7 @@ Response_Packet::Response_Packet(byte* buffer, bool UseSerialDebug)
 	byte checksum_high = GetHighByte(checksum);
 	CheckParsing(buffer[10], checksum_low, checksum_low, "Checksum_LOW", UseSerialDebug);
 	CheckParsing(buffer[11], checksum_high, checksum_high, "Checksum_HIGH", UseSerialDebug);
-	
+
 	Error = ErrorCodes::ParseFromBytes(buffer[5], buffer[4]);
 
 	ParameterBytes[0] = buffer[4];
@@ -129,9 +129,9 @@ Response_Packet::ErrorCodes::Errors_Enum Response_Packet::ErrorCodes::ParseFromB
 		{
 			case 0x00: e = NO_ERROR; break;
 			case 0x01: e = NACK_TIMEOUT; break;
-			case 0x02: e = NACK_INVALID_BAUDRATE; break;		
-			case 0x03: e = NACK_INVALID_POS; break;			
-			case 0x04: e = NACK_IS_NOT_USED; break;		
+			case 0x02: e = NACK_INVALID_BAUDRATE; break;
+			case 0x03: e = NACK_INVALID_POS; break;
+			case 0x04: e = NACK_IS_NOT_USED; break;
 			case 0x05: e = NACK_IS_ALREADY_USED; break;
 			case 0x06: e = NACK_COMM_ERR; break;
 			case 0x07: e = NACK_VERIFY_FAILED; break;
@@ -200,11 +200,11 @@ bool Response_Packet::CheckParsing(byte b, byte propervalue, byte alternatevalue
 		Serial.print(" != ");
 		Serial.println(b, HEX);
 	}
-	
+
 }
 #pragma endregion
 
-#pragma region -= Data_Packet =- 
+#pragma region -= Data_Packet =-
 //void Data_Packet::StartNewPacket()
 //{
 //	Data_Packet::NextPacketID = 0;
@@ -250,7 +250,7 @@ void FPS_GT511C3::Open()
 	delete packetbytes;
 }
 
-// According to the DataSheet, this does nothing... 
+// According to the DataSheet, this does nothing...
 // Implemented it for completeness.
 void FPS_GT511C3::Close()
 {
@@ -316,7 +316,7 @@ bool FPS_GT511C3::ChangeBaudRate(int baud)
 		SendCommand(packetbytes, 12);
 		Response_Packet* rp = GetResponse();
 		bool retval = rp->ACK;
-		if (retval) 
+		if (retval)
 		{
 			_serial.end();
 			_serial.begin(baud);
@@ -399,7 +399,7 @@ int FPS_GT511C3::EnrollStart(int id)
 }
 
 // Gets the first scan of an enrollment
-// Return: 
+// Return:
 //	0 - ACK
 //	1 - Enroll Failed
 //	2 - Bad finger
@@ -426,7 +426,7 @@ int FPS_GT511C3::Enroll1()
 }
 
 // Gets the Second scan of an enrollment
-// Return: 
+// Return:
 //	0 - ACK
 //	1 - Enroll Failed
 //	2 - Bad finger
@@ -454,7 +454,7 @@ int FPS_GT511C3::Enroll2()
 
 // Gets the Third scan of an enrollment
 // Finishes Enrollment
-// Return: 
+// Return:
 //	0 - ACK
 //	1 - Enroll Failed
 //	2 - Bad finger
@@ -645,7 +645,7 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 // Gets a template from the fps (498 bytes) in 4 Data_Packets
 // Use StartDataDownload, and then GetNextDataPacket until done
 // Parameter: 0-199 ID number
-// Returns: 
+// Returns:
 //	0 - ACK Download starting
 //	1 - Invalid position
 //	2 - ID not used (no template to download
@@ -658,11 +658,11 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 	//return false;
 //}
 
-// Uploads a template to the fps 
+// Uploads a template to the fps
 // Parameter: the template (498 bytes)
 // Parameter: the ID number to upload
 // Parameter: Check for duplicate fingerprints already on fps
-// Returns: 
+// Returns:
 //	0-199 - ID duplicated
 //	200 - Uploaded ok (no duplicate if enabled)
 //	201 - Invalid position
@@ -686,7 +686,7 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 	// may revisit this if I find a need for it
 //}
 
-// Returns the next data packet 
+// Returns the next data packet
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
 //Data_Packet GetNextDataPacket()
@@ -715,7 +715,7 @@ void FPS_GT511C3::SendCommand(byte cmd[], int length)
 	_serial.write(cmd, length);
 	if (UseSerialDebug)
 	{
-		Serial.print("FPS - SEND: "); 
+		Serial.print("FPS - SEND: ");
 		SendToSerial(cmd, length);
 		Serial.println();
 	}
@@ -744,7 +744,7 @@ Response_Packet* FPS_GT511C3::GetResponse()
 	}
 	Response_Packet* rp = new Response_Packet(resp, UseSerialDebug);
 	delete resp;
-	if (UseSerialDebug) 
+	if (UseSerialDebug)
 	{
 		Serial.print("FPS - RECV: ");
 		SendToSerial(rp->RawBytes, 12);
@@ -771,8 +771,8 @@ void FPS_GT511C3::SendToSerial(byte data[], int length)
 void FPS_GT511C3::serialPrintHex(byte data)
 {
   char tmp[16];
-  sprintf(tmp, "%.2X",data); 
-  Serial.print(tmp); 
+  sprintf(tmp, "%.2X",data);
+  Serial.print(tmp);
 }
 #pragma endregion
 
