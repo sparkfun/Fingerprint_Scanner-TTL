@@ -244,6 +244,7 @@ void FPS_GT511C3::Open()
 	cp->Parameter[2] = 0x00;
 	cp->Parameter[3] = 0x00;
 	byte* packetbytes = cp->GetPacketBytes();
+	delete cp;
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
 	delete rp;
@@ -262,6 +263,7 @@ void FPS_GT511C3::Close()
 	cp->Parameter[2] = 0x00;
 	cp->Parameter[3] = 0x00;
 	byte* packetbytes = cp->GetPacketBytes();
+	delete cp;
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
 	delete rp;
@@ -289,13 +291,13 @@ bool FPS_GT511C3::SetLED(bool on)
 	cp->Parameter[2] = 0x00;
 	cp->Parameter[3] = 0x00;
 	byte* packetbytes = cp->GetPacketBytes();
+	delete cp;
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
 	bool retval = true;
 	if (rp->ACK == false) retval = false;
 	delete rp;
 	delete packetbytes;
-	delete cp;
 	return retval;
 };
 
@@ -313,6 +315,7 @@ bool FPS_GT511C3::ChangeBaudRate(int baud)
 		cp->Command = Command_Packet::Commands::Open;
 		cp->ParameterFromInt(baud);
 		byte* packetbytes = cp->GetPacketBytes();
+		delete cp;
 		SendCommand(packetbytes, 12);
 		Response_Packet* rp = GetResponse();
 		bool retval = rp->ACK;
@@ -340,6 +343,7 @@ int FPS_GT511C3::GetEnrollCount()
 	cp->Parameter[2] = 0x00;
 	cp->Parameter[3] = 0x00;
 	byte* packetbytes = cp->GetPacketBytes();
+	delete cp;
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
 
@@ -488,6 +492,7 @@ bool FPS_GT511C3::IsPressFinger()
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::IsPressFinger;
 	byte* packetbytes = cp->GetPacketBytes();
+	delete cp;
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
 	bool retval = false;
@@ -498,7 +503,6 @@ bool FPS_GT511C3::IsPressFinger()
 	if (pval == 0) retval = true;
 	delete rp;
 	delete packetbytes;
-	delete cp;
 	return retval;
 }
 
@@ -512,12 +516,12 @@ bool FPS_GT511C3::DeleteID(int id)
 	cp->Command = Command_Packet::Commands::DeleteID;
 	cp->ParameterFromInt(id);
 	byte* packetbytes = cp->GetPacketBytes();
+	delete cp;
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
 	bool retval = rp->ACK;
 	delete rp;
 	delete packetbytes;
-	delete cp;
 	return retval;
 }
 
@@ -552,6 +556,7 @@ int FPS_GT511C3::Verify1_1(int id)
 	cp->Command = Command_Packet::Commands::Verify1_1;
 	cp->ParameterFromInt(id);
 	byte* packetbytes = cp->GetPacketBytes();
+	delete cp;
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
 	int retval = 0;
@@ -564,7 +569,6 @@ int FPS_GT511C3::Verify1_1(int id)
 	}
 	delete rp;
 	delete packetbytes;
-	delete cp;
 	return retval;
 }
 
@@ -578,13 +582,13 @@ int FPS_GT511C3::Identify1_N()
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Identify1_N;
 	byte* packetbytes = cp->GetPacketBytes();
+	delete cp;
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
 	int retval = rp->IntFromParameter();
 	if (retval > 200) retval = 200;
 	delete rp;
 	delete packetbytes;
-	delete cp;
 	return retval;
 }
 
@@ -606,12 +610,12 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 		cp->ParameterFromInt(0);
 	}
 	byte* packetbytes = cp->GetPacketBytes();
+	delete cp;
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
 	bool retval = rp->ACK;
 	delete rp;
 	delete packetbytes;
-	delete cp;
 	return retval;
 
 }
@@ -761,8 +765,8 @@ void FPS_GT511C3::SendToSerial(byte data[], int length)
   Serial.print("\"");
   for(int i=0; i<length; i++)
   {
-    if (first) first=false; else Serial.print(" ");
-    serialPrintHex(data[i]);
+	if (first) first=false; else Serial.print(" ");
+	serialPrintHex(data[i]);
   }
   Serial.print("\"");
 }
