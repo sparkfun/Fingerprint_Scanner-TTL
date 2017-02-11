@@ -542,6 +542,12 @@ bool FPS_GT511C3::DeleteAll()
 	return retval;
 }
 
+void FPS_GT511C3::listen()
+{
+	if (UseSerialDebug) Serial.println("FPS - listen the serial port");
+	_serial.listen();
+}
+
 // Checks the currently pressed finger against a specific ID
 // Parameter: 0-199 (id number to be checked)
 // Returns:

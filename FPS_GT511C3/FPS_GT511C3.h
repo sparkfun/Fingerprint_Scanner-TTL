@@ -336,6 +336,8 @@ class FPS_GT511C3
 	// may revisit this if I find a need for it
 	//Data_Packet GetNextDataPacket();
 
+	void listen();
+
 private:
 	 void SendCommand(byte cmd[], int length);
 	 Response_Packet* GetResponse();

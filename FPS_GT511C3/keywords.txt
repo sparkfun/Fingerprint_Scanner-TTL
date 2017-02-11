@@ -16,3 +16,4 @@ DeleteAll	KEYWORD2
 Verify1_1	KEYWORD2
 Identify1_N	KEYWORD2
 CaptureFinger	KEYWORD2
+listen	KEYWORD2
