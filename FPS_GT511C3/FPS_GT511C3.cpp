@@ -6,9 +6,11 @@
 	TLDR; Wil Wheaton's Law
 */
 
-#include "FPS_GT511C3.h";
+#include "FPS_GT511C3.h"
 
+#ifndef __GNUC__
 #pragma region -= Command_Packet Definitions =-
+#endif  //__GNUC__
 
 // returns the 12 bytes of the generated command packet
 // remember to call delete on the returned array
@@ -80,9 +82,13 @@ word Command_Packet::_CalculateChecksum()
 Command_Packet::Command_Packet()
 {
 };
+#ifndef __GNUC__
 #pragma endregion
+#endif  //__GNUC__
 
+#ifndef __GNUC__
 #pragma region -= Response_Packet Definitions =-
+#endif  //__GNUC__
 // creates and parses a response packet from the finger print scanner
 Response_Packet::Response_Packet(byte* buffer, bool UseSerialDebug)
 {
@@ -186,7 +192,7 @@ byte Response_Packet::GetLowByte(word w)
 }
 
 // checks to see if the byte is the proper value, and logs it to the serial channel if not
-bool Response_Packet::CheckParsing(byte b, byte propervalue, byte alternatevalue, char* varname, bool UseSerialDebug)
+bool Response_Packet::CheckParsing(byte b, byte propervalue, byte alternatevalue, const char* varname, bool UseSerialDebug)
 {
 	bool retval = (b != propervalue) && (b != alternatevalue);
 	if ((UseSerialDebug) && (retval))
@@ -200,21 +206,31 @@ bool Response_Packet::CheckParsing(byte b, byte propervalue, byte alternatevalue
 		Serial.print(" != ");
 		Serial.println(b, HEX);
 	}
-
+  return retval;
 }
+#ifndef __GNUC__
 #pragma endregion
+#endif  //__GNUC__
 
+#ifndef __GNUC__
 #pragma region -= Data_Packet =-
+#endif  //__GNUC__
 //void Data_Packet::StartNewPacket()
 //{
 //	Data_Packet::NextPacketID = 0;
 //	Data_Packet::CheckSum = 0;
 //}
+#ifndef __GNUC__
 #pragma endregion
+#endif  //__GNUC__
 
+#ifndef __GNUC__
 #pragma region -= FPS_GT511C3 Definitions =-
+#endif  //__GNUC__
 
+#ifndef __GNUC__
 #pragma region -= Constructor/Destructor =-
+#endif  //__GNUC__
 // Creates a new object to interface with the fingerprint scanner
 FPS_GT511C3::FPS_GT511C3(uint8_t rx, uint8_t tx)
 	: _serial(rx,tx)
@@ -230,9 +246,13 @@ FPS_GT511C3::~FPS_GT511C3()
 {
 	_serial.~SoftwareSerial();
 }
+#ifndef __GNUC__
 #pragma endregion
+#endif  //__GNUC__
 
+#ifndef __GNUC__
 #pragma region -= Device Commands =-
+#endif  //__GNUC__
 //Initialises the device and gets ready for commands
 void FPS_GT511C3::Open()
 {
@@ -305,7 +325,7 @@ bool FPS_GT511C3::SetLED(bool on)
 // Parameter: 9600, 19200, 38400, 57600, 115200
 // Returns: True if success, false if invalid baud
 // NOTE: Untested (don't have a logic level changer and a voltage divider is too slow)
-bool FPS_GT511C3::ChangeBaudRate(int baud)
+bool FPS_GT511C3::ChangeBaudRate(unsigned long baud)
 {
 	if ((baud == 9600) || (baud == 19200) || (baud == 38400) || (baud == 57600) || (baud == 115200))
 	{
@@ -619,9 +639,13 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 	return retval;
 
 }
+#ifndef __GNUC__
 #pragma endregion
+#endif  //__GNUC__
 
+#ifndef __GNUC__
 #pragma region -= Not imlemented commands =-
+#endif  //__GNUC__
 // Gets an image that is 258x202 (52116 bytes) and returns it in 407 Data_Packets
 // Use StartDataDownload, and then GetNextDataPacket until done
 // Returns: True (device confirming download starting)
@@ -709,10 +733,14 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 // UpgradeISOCDImage - Data sheet says not supported
 // SetIAPMode - for upgrading firmware (which data sheet says is not supported)
 // Ack and Nack	are listed as commands for some unknown reason... not implemented
+#ifndef __GNUC__
 #pragma endregion
+#endif  //__GNUC__
 
 
+#ifndef __GNUC__
 #pragma region -= Private Methods =-
+#endif  //__GNUC__
 // Sends the command to the software serial channel
 void FPS_GT511C3::SendCommand(byte cmd[], int length)
 {
@@ -778,7 +806,11 @@ void FPS_GT511C3::serialPrintHex(byte data)
   sprintf(tmp, "%.2X",data);
   Serial.print(tmp);
 }
+#ifndef __GNUC__
 #pragma endregion
+#endif  //__GNUC__
 
+#ifndef __GNUC__
 #pragma endregion
+#endif  //__GNUC__
 

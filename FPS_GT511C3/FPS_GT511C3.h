@@ -9,9 +9,11 @@
 #ifndef FPS_GT511C3_h
 #define FPS_GT511C3_h
 
-#include "Arduino.h";
-#include "SoftwareSerial.h";
+#include "Arduino.h"
+#include "SoftwareSerial.h"
+#ifndef __GNUC__
 #pragma region -= Command_Packet =-
+#endif  //__GNUC__
 /*
 	Command_Packet represents the 12 byte command that we send to the finger print scanner
 */
@@ -76,9 +78,13 @@ class Command_Packet
 		byte GetHighByte(word w);						
 		byte GetLowByte(word w);
 };
+#ifndef __GNUC__
 #pragma endregion
+#endif  //__GNUC__
 
+#ifndef __GNUC__
 #pragma region -= Response_Packet =-
+#endif  //__GNUC__
 /*
 	Response_Packet represents the returned data from the finger print scanner 
 */
@@ -127,14 +133,18 @@ class Response_Packet
 		int IntFromParameter();
 
 	private: 
-		bool CheckParsing(byte b, byte propervalue, byte alternatevalue, char* varname, bool UseSerialDebug);
+		bool CheckParsing(byte b, byte propervalue, byte alternatevalue, const char* varname, bool UseSerialDebug);
 		word CalculateChecksum(byte* buffer, int length);
 		byte GetHighByte(word w);						
 		byte GetLowByte(word w);
 };
+#ifndef __GNUC__
 #pragma endregion
+#endif  //__GNUC__
 
+#ifndef __GNUC__
 #pragma region -= Data_Packet =- 
+#endif  //__GNUC__
 // Data Mule packet for receiving large data(in 128 byte pieces) from the FPS
 // This class can only transmit one packet at a time
 //class Data_Packet
@@ -149,7 +159,9 @@ class Response_Packet
 //private:
 //	static int NextPacketID;
 //};
+#ifndef __GNUC__
 #pragma endregion
+#endif  //__GNUC__
 
 
 /*
@@ -162,16 +174,22 @@ class FPS_GT511C3
 	// Enables verbose debug output using hardware Serial 
 	bool UseSerialDebug;
 
+#ifndef __GNUC__
 	#pragma region -= Constructor/Destructor =-
+#endif  //__GNUC__
 	// Creates a new object to interface with the fingerprint scanner
 	FPS_GT511C3(uint8_t rx, uint8_t tx);
 	
 	// destructor
 	~FPS_GT511C3();
+#ifndef __GNUC__
 	#pragma endregion
+#endif  //__GNUC__
 
 
+#ifndef __GNUC__
 	#pragma region -= Device Commands =-
+#endif  //__GNUC__
 	//Initialises the device and gets ready for commands
 	void Open();
 
@@ -189,7 +207,7 @@ class FPS_GT511C3
 	// Parameter: 9600 - 115200
 	// Returns: True if success, false if invalid baud
 	// NOTE: Untested (don't have a logic level changer and a voltage divider is too slow)
-	bool ChangeBaudRate(int baud);
+	bool ChangeBaudRate(unsigned long baud);
 
 	// Gets the number of enrolled fingerprints
 	// Return: The total number of enrolled fingerprints
@@ -266,9 +284,13 @@ class FPS_GT511C3
 	// Generally, use high quality for enrollment, and low quality for verification/identification
 	// Returns: True if ok, false if no finger pressed
 	bool CaptureFinger(bool highquality);
+#ifndef __GNUC__
 	#pragma endregion
+#endif  //__GNUC__
 
+#ifndef __GNUC__
 	#pragma region -= Not implemented commands =-
+#endif  //__GNUC__
 	// Gets an image that is 258x202 (52116 bytes) and returns it in 407 Data_Packets
 	// Use StartDataDownload, and then GetNextDataPacket until done
 	// Returns: True (device confirming download starting)
@@ -319,9 +341,13 @@ class FPS_GT511C3
 	// UpgradeISOCDImage - Data Sheet says not supported
 	// SetIAPMode - for upgrading firmware (which is not supported)
 	// Ack and Nack	are listed as a commands for some unknown reason... not implemented
-	#pragma endregion
+#ifndef __GNUC__
+  #pragma endregion
+#endif  //__GNUC__
 
+#ifndef __GNUC__
 	#pragma endregion
+#endif  //__GNUC__
 
 	void serialPrintHex(byte data);
 	void SendToSerial(byte data[], int length);
