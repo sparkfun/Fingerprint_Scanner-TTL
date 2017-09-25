@@ -31,8 +31,8 @@ It is recommended to use a dedicated bi-direcitonal LLC
 are using a 5V Arduino microcontroller:
 
    Fingerprint Scanner (Pin #) <-> Logic Level Converter <-> 5V Arduino w/ Atmega328P
-     UART_TX (3.3V TTL)(Pin 1) <->     LV4 <-> HV4       <->  RX (pin 4)
-     UART_RX (3.3V TTL)(Pin 2) <->     LV1 <-> HV1       <->  TX (pin 5)
+     UART_TX (3.3V TTL)(Pin 1) <->     LV1 <-> HV1       <->  RX (pin 4)
+     UART_RX (3.3V TTL)(Pin 2) <->     LV4 <-> HV4       <->  TX (pin 5)
            GND         (Pin 3) <->     GND <-> GND       <->     GND
       Vin (3.3V~6V)    (Pin 4) <->        HV             <->      5V
                                           LV             <->     3.3V
