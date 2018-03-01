@@ -5,12 +5,12 @@ Fingerprint_Scanner-TTL
   <tr align="center">
     <td><a href="https://www.sparkfun.com/products/14518"><img src="https://cdn.sparkfun.com//assets/parts/1/2/5/9/1/14518-01.jpg" title="Fingerprint Scanner - TTL (GT-521F32)"></a></td>	
     <td><a href="https://www.sparkfun.com/products/14585"><img src="https://cdn.sparkfun.com//assets/parts/1/2/7/3/2/14585-Fingerprint_Scanner_-_TTL__GT-521F52_-01.jpg" title="Fingerprint Scanner - TTL (GT-521F52)"></a></td>
-  <td><a href="https://www.sparkfun.com/products/11792"><img src="https://cdn.sparkfun.com//assets/parts/8/0/7/3/11792-04a.jpg" title="Fingerprint Scanner - TTL (GT-511C3)" style="opacity:0.5"></a></td>
+  <td><a href="https://www.sparkfun.com/products/11792"><img src="https://cdn.sparkfun.com//assets/parts/8/0/7/3/11792-04a.jpg" title="Fingerprint Scanner - TTL (GT-511C3)"></a></td>
   </tr>
   <tr align="center">
     <td><i>Fingerprint Scanner - TTL (GT-521F32) [<a href="https://www.sparkfun.com/products/14518">SEN-14518</a>]</i></td>
     <td><i>Fingerprint Scanner - TTL (GT-521F52) [<a href="https://www.sparkfun.com/products/14585">SEN-14585</a>]</i></td>
-    <td><i>Fingerprint Scanner - TTL (GT-511C3) (RETIRED)[<a href="https://www.sparkfun.com/products/11792">SEN-11792</a>]</i></td>
+    <td><i>Fingerprint Scanner - TTL (GT-511C3)[<a href="https://www.sparkfun.com/products/11792">SEN-11792 (RETIRED)</a>]</i></td>
   </tr>
 </table>
 
