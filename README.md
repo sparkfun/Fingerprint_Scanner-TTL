@@ -23,7 +23,7 @@ Repository Contents
 Documentation
 ----------------
 * [Fingerprint Scanner (GT-521Fxx) Hookup Guide](https://learn.sparkfun.com/tutorials/fingerprint-scanner-gt-521fxx-hookup-guide) - Hookup guide to connect to the GT-521F32 and GT-521F52.
-* _[SparkFun Fingerprint Scanner Hookup Guide (RETIRED)](https://learn.sparkfun.com/tutorials/fingerprint-scanner-hookup-guide) - Hookup guide to connect to the GT-511C3 and GT-511C1R._
+* _[Fingerprint Scanner Hookup Guide (RETIRED)](https://learn.sparkfun.com/tutorials/fingerprint-scanner-hookup-guide) - Hookup guide to connect to the GT-511C3 and GT-511C1R._
 
 Product Versions
 ----------------
