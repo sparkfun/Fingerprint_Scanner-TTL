@@ -34,7 +34,10 @@ Product Versions
 * _[SEN-13007 (RETIRED)](https://www.sparkfun.com/products/13007)- Fingerprint Scanner - TTL (GT-511C1R)_
 * _[SEN-11836 (RETIRED)](https://www.sparkfun.com/products/11836)- Fingerprint Scanner - 5V TTL (GT-511C1)_
 
-
+Version History
+---------------
+* [V_1.1.0](https://github.com/Fingerprint_Scanner-TTL/tree/V_1.1.0) - Updated to new Arduino library structure
+* [V_1.0.0](https://github.com/Fingerprint_Scanner-TTL/tree/V_1.0.0) - Untracked version
 
 License Information
 -------------------
