@@ -1,5 +1,5 @@
-Fingerprint_Scanner-TTL
-=======================
+Fingerprint Scanner-TTL
+====================================
 
 <table class="table table-hover table-striped table-bordered">
   <tr align="center">
@@ -18,10 +18,14 @@ This is a great fingerprint module from ADH-Tech that communicates over 3.3V TTL
 
 Repository Contents
 -------------------
-* **/FPS_GT511C3** - Arduino library and example code to interface with the sensor.
+* **/examples** - Example code to interface with the sensor.
+* **/src** - Source files for the library (.cpp, .h).
+* **keywords.txt** - Keywords from this library that will be highlighted in the Arduino IDE.
+* **library.properties** - General library properties for the Arduino package manager.
 
 Documentation
 ----------------
+* [Installing an Arduino Library Guide](https://learn.sparkfun.com/tutorials/installing-an-arduino-library) - Basic information on how to install an Arduino library.
 * [Fingerprint Scanner (GT-521Fxx) Hookup Guide](https://learn.sparkfun.com/tutorials/fingerprint-scanner-gt-521fxx-hookup-guide) - Hookup guide to connect to the GT-521F32 and GT-521F52.
 * _[Fingerprint Scanner Hookup Guide (RETIRED)](https://learn.sparkfun.com/tutorials/fingerprint-scanner-hookup-guide) - Hookup guide to connect to the GT-511C3 and GT-511C1R._
 
