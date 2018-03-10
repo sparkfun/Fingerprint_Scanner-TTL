@@ -40,8 +40,8 @@ Product Versions
 
 Version History
 ---------------
-* [V_1.1.0](https://github.com/sparkfun/Fingerprint_Scanner-TTL/releases/tag/v1.1.0) - Updated to new Arduino library structure
-* [V_1.0.0](https://github.com/sparkfun/Fingerprint_Scanner-TTL/releases/tag/v1.0.0) - Untracked version
+* [V1.1.0](https://github.com/sparkfun/Fingerprint_Scanner-TTL/releases/tag/v1.1.0) - Updated to new Arduino library structure
+* [V1.0.0](https://github.com/sparkfun/Fingerprint_Scanner-TTL/releases/tag/v1.0.0) - Untracked version
 
 License Information
 -------------------
