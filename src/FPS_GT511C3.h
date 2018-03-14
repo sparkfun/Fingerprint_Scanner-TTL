@@ -1,4 +1,4 @@
-/* 
+/*
 	FPS_GT511C3.h v1.0 - Library for controlling the GT-511C3 Finger Print Scanner (FPS)
 	Created by Josh Hawley, July 23rd 2013
 	Licensed for non-commercial use, must include this license message
@@ -214,12 +214,14 @@ class FPS_GT511C3
 	int GetEnrollCount();
 
 	// checks to see if the ID number is in use or not
-	// Parameter: 0-199
+	// Parameter: 0-2999, if using GT-521F52
+        //            0-199, if using GT-521F32/GT-511C3
 	// Return: True if the ID number is enrolled, false if not
 	bool CheckEnrolled(int id);
 
 	// Starts the Enrollment Process
-	// Parameter: 0-199
+	// Parameter: 0-2999, if using GT-521F52
+        //            0-199, if using GT-521F32/GT-511C3
 	// Return:
 	//	0 - ACK
 	//	1 - Database is full
@@ -265,7 +267,8 @@ class FPS_GT511C3
 	bool DeleteAll();
 
 	// Checks the currently pressed finger against a specific ID
-	// Parameter: 0-199 (id number to be checked)
+	// Parameter: 0-2999, if using GT-521F52 (id number to be checked)
+        //            0-199, if using GT-521F32/GT-511C3 (id number to be checked)
 	// Returns:
 	//	0 - Verified OK (the correct finger)
 	//	1 - Invalid Position
@@ -275,8 +278,12 @@ class FPS_GT511C3
 
 	// Checks the currently pressed finger against all enrolled fingerprints
 	// Returns:
-	//	0-199: Verified against the specified ID (found, and here is the ID number)
-	//	200: Failed to find the fingerprint in the database
+	//	Verified against the specified ID (found, and here is the ID number)
+        //           0-2999, if using GT-521F52
+        //           0-199, if using GT-521F32/GT-511C3
+        //      Failed to find the fingerprint in the database
+        // 	     3000, if using GT-521F52
+        //           200, if using GT-521F32/GT-511C3
 	int Identify1_N();
 
 	// Captures the currently pressed finger into onboard ram

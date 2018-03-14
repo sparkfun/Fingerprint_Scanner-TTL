@@ -10,6 +10,8 @@
  *  you are within the minimum logic level threshold for the FPS serial UART.
  *  This code has been tested with these models:
  *
+ *            GT-521F52 [ https://www.sparkfun.com/products/14585 ]
+ *            GT-521F32 [ https://www.sparkfun.com/products/14518 ]
  *            GT-511C3  [ https://www.sparkfun.com/products/11792 ]
  *            GT-511C1R [ https://www.sparkfun.com/products/13007 ]
  *
@@ -63,8 +65,8 @@ Note: You can add the two 10kOhm resistors in series for 20kOhms. =)
 // FPS (RX) is connected through a converter to pin 5 (Arduino's Software TX)
 SoftwareSerial fps(4, 5); // (Arduino SS_RX = pin 4, Arduino SS_TX = pin 5)
 
-/*If using another Arduino microcontroller, try commenting out line 64 and
-uncommenting line 73 due to the limitations listed in the
+/*If using another Arduino microcontroller, try commenting out line 66 and
+uncommenting line 75 due to the limitations listed in the
 library's note => https://www.arduino.cc/en/Reference/softwareSerial . Do
 not forget to rewire the connection to the Arduino.*/
 

@@ -374,7 +374,8 @@ int FPS_GT511C3::GetEnrollCount()
 }
 
 // checks to see if the ID number is in use or not
-// Parameter: 0-199
+// Parameter: 0-2999, if using GT-521F52
+//            0-199, if using GT-521F32/GT-511C3
 // Return: True if the ID number is enrolled, false if not
 bool FPS_GT511C3::CheckEnrolled(int id)
 {
@@ -394,7 +395,8 @@ bool FPS_GT511C3::CheckEnrolled(int id)
 }
 
 // Starts the Enrollment Process
-// Parameter: 0-199
+// Parameter: 0-2999, if using GT-521F52
+//            0-199, if using GT-521F32/GT-511C3
 // Return:
 //	0 - ACK
 //	1 - Database is full
@@ -439,6 +441,8 @@ int FPS_GT511C3::Enroll1()
 	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	int retval = rp->IntFromParameter();
+//Change to  "retval < 3000", if using GT-521F52
+//Leave "reval < 200", if using GT-521F32/GT-511C3
 	if (retval < 200) retval = 3; else retval = 0;
 	if (rp->ACK == false)
 	{
@@ -466,6 +470,8 @@ int FPS_GT511C3::Enroll2()
 	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	int retval = rp->IntFromParameter();
+//Change to "retval < 3000", if using GT-521F52
+//Leave "reval < 200", if using GT-521F32/GT-511C3
 	if (retval < 200) retval = 3; else retval = 0;
 	if (rp->ACK == false)
 	{
@@ -494,7 +500,9 @@ int FPS_GT511C3::Enroll3()
 	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	int retval = rp->IntFromParameter();
-	if (retval < 200) retval = 3; else retval = 0;
+//Change to "retval < 3000", if using GT-521F52
+//Leave "reval < 200", if using GT-521F32/GT-511C3
+        if (retval < 200) retval = 3; else retval = 0;
 	if (rp->ACK == false)
 	{
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_ENROLL_FAILED) retval = 1;
@@ -527,7 +535,8 @@ bool FPS_GT511C3::IsPressFinger()
 }
 
 // Deletes the specified ID (enrollment) from the database
-// Parameter: 0-199 (id number to be deleted)
+// Parameter: 0-2999, if using GT-521F52 (id number to be deleted)
+//            0-199, if using GT-521F32/GT-511C3(id number to be deleted)
 // Returns: true if successful, false if position invalid
 bool FPS_GT511C3::DeleteID(int id)
 {
@@ -563,7 +572,8 @@ bool FPS_GT511C3::DeleteAll()
 }
 
 // Checks the currently pressed finger against a specific ID
-// Parameter: 0-199 (id number to be checked)
+// Parameter: 0-2999, if using GT-521F52 (id number to be checked)
+//            0-199, if using GT-521F32/GT-511C3 (id number to be checked)
 // Returns:
 //	0 - Verified OK (the correct finger)
 //	1 - Invalid Position
@@ -594,8 +604,12 @@ int FPS_GT511C3::Verify1_1(int id)
 
 // Checks the currently pressed finger against all enrolled fingerprints
 // Returns:
-//	0-199: Verified against the specified ID (found, and here is the ID number)
-//	200: Failed to find the fingerprint in the database
+//	Verified against the specified ID (found, and here is the ID number)
+//           0-2999, if using GT-521F52
+//           0-199, if using GT-521F32/GT-511C3
+//      Failed to find the fingerprint in the database
+// 	     3000, if using GT-521F52
+//           200, if using GT-521F32/GT-511C3
 int FPS_GT511C3::Identify1_N()
 {
 	if (UseSerialDebug) Serial.println("FPS - Identify1_N");
@@ -606,6 +620,8 @@ int FPS_GT511C3::Identify1_N()
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
 	int retval = rp->IntFromParameter();
+//Change to "retval > 3000" and "retval = 3000", if using GT-521F52
+//Leave "reval > 200" and "retval = 200", if using GT-521F32/GT-511C3
 	if (retval > 200) retval = 200;
 	delete rp;
 	delete packetbytes;
