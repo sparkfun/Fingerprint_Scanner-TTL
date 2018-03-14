@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/sparkfun/Fingerprint_Scanner-TTL.git"
   },
-  "version": "1.1.0",
+  "version": "1.1.1",
   "frameworks": "arduino",
   "platforms": "atmelavr"
 }
