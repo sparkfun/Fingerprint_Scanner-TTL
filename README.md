@@ -40,6 +40,7 @@ Product Versions
 
 Version History
 ---------------
+* [V1.1.1](https://github.com/sparkfun/Fingerprint_Scanner-TTL/releases/tag/v1.1.1) - Add comments when using with GT-521F52
 * [V1.1.0](https://github.com/sparkfun/Fingerprint_Scanner-TTL/releases/tag/v1.1.0) - Updated to new Arduino library structure
 * [V1.0.0](https://github.com/sparkfun/Fingerprint_Scanner-TTL/releases/tag/v1.0.0) - Untracked version
 
