@@ -730,12 +730,28 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 
 }
 
-// Gets an image that is qvga 160x120 (19200 bytes) and returns it in 150 Data_Packets
-// Use StartDataDownload, and then GetNextDataPacket until done
-// Returns: True (device confirming download starting)
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-/*bool FPS_GT511C3::GetRawImage()
+// Gets an image that is 258x202 (52116 bytes) and sends it over serial
+// Returns: True (device confirming download)
+bool FPS_GT511C3::GetImage()
+{
+    if (UseSerialDebug) Serial.println("FPS - GetImage");
+	Command_Packet* cp = new Command_Packet();
+	cp->Command = Command_Packet::Commands::GetRawImage;
+	byte* packetbytes = cp->GetPacketBytes();
+	delete cp;
+	SendCommand(packetbytes, 12);
+	Response_Packet* rp = GetResponse();
+	bool retval = rp->ACK;
+	delete rp;
+	delete packetbytes;
+	GetData(52116);
+	return retval;
+
+}
+
+// Gets an image that is qvga 160x120 (19200 bytes) and sends it over serial
+// Returns: True (device confirming download)
+bool FPS_GT511C3::GetRawImage()
 {
     if (UseSerialDebug) Serial.println("FPS - GetRawImage");
 	Command_Packet* cp = new Command_Packet();
@@ -747,10 +763,10 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 	bool retval = rp->ACK;
 	delete rp;
 	delete packetbytes;
+	GetData(19200);
 	return retval;
 
-	//return false;
-}*/
+}
 #ifndef __GNUC__
 #pragma endregion
 #endif  //__GNUC__

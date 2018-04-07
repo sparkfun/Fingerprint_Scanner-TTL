@@ -303,19 +303,13 @@ class FPS_GT511C3
 #ifndef __GNUC__
 	#pragma region -= Not implemented commands =-
 #endif  //__GNUC__
-	// Gets an image that is 258x202 (52116 bytes) and returns it in 407 Data_Packets
-	// Use StartDataDownload, and then GetNextDataPacket until done
-	// Returns: True (device confirming download starting)
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-	//bool GetImage();
+	// Gets an image that is 258x202 (52116 bytes) and sends it over serial
+    // Returns: True (device confirming download)
+	bool GetImage();
 
-	// Gets an image that is qvga 160x120 (19200 bytes) and returns it in 150 Data_Packets
-	// Use StartDataDownload, and then GetNextDataPacket until done
-	// Returns: True (device confirming download starting)
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-	//bool GetRawImage();
+	// Gets an image that is qvga 160x120 (19200 bytes) and sends it over serial
+    // Returns: True (device confirming download)
+	bool GetRawImage();
 
 	// Gets a template from the fps (498 bytes) in 4 Data_Packets
 	// Use StartDataDownload, and then GetNextDataPacket until done
