@@ -168,6 +168,24 @@ int Response_Packet::IntFromParameter()
 	return retval;
 }
 
+// checks to see if the byte is the proper value, and logs it to the serial channel if not
+bool Response_Packet::CheckParsing(byte b, byte propervalue, byte alternatevalue, const char* varname, bool UseSerialDebug)
+{
+	bool retval = (b != propervalue) && (b != alternatevalue);
+	if ((UseSerialDebug) && (retval))
+	{
+		Serial.print("Response_Packet parsing error ");
+		Serial.print(varname);
+		Serial.print(" ");
+		Serial.print(propervalue, HEX);
+		Serial.print(" || ");
+		Serial.print(alternatevalue, HEX);
+		Serial.print(" != ");
+		Serial.println(b, HEX);
+	}
+  return retval;
+}
+
 // calculates the checksum from the bytes in the packet
 word Response_Packet::CalculateChecksum(byte* buffer, int length)
 {
@@ -190,14 +208,48 @@ byte Response_Packet::GetLowByte(word w)
 {
 	return (byte)w&0x00FF;
 }
+#ifndef __GNUC__
+#pragma endregion
+#endif  //__GNUC__
+
+#ifndef __GNUC__
+#pragma region -= Data_Packet =-
+#endif  //__GNUC__
+Data_Packet::Data_Packet(byte* buffer, bool UseSerialDebug)
+{
+    CheckParsing(buffer[0], DATA_START_CODE_1, DATA_START_CODE_1, "DATA_START_CODE_1", UseSerialDebug);
+	CheckParsing(buffer[1], DATA_START_CODE_2, DATA_START_CODE_2, "DATA_START_CODE_2", UseSerialDebug);
+	CheckParsing(buffer[2], DATA_DEVICE_ID_1, DATA_DEVICE_ID_1, "DATA_DEVICE_ID_1", UseSerialDebug);
+	CheckParsing(buffer[3], DATA_DEVICE_ID_2, DATA_DEVICE_ID_2, "DATA_DEVICE_ID_2", UseSerialDebug);
+
+	Data_Packet.checksum = CalculateChecksum(buffer, 4);
+}
+
+// Get a data packet (128 bytes), calculate checksum and send it to serial
+Data_Packet::GetData(byte* buffer, bool UseSerialDebug)
+{
+    FPS_GT511C3.SendToSerial(buffer, 128);
+    Data_Packet.checksum = CalculateChecksum(buffer, 128);
+}
+
+// Get the last data packet (<=128 bytes), calculate checksum, validate checksum received and send it to serial
+Data_Packet::GetLastData(byte* buffer, int length, bool UseSerialDebug)
+{
+    FPS_GT511C3.SendToSerial(buffer, length-2);
+    Data_Packet.checksum = CalculateChecksum(buffer, length);
+	byte checksum_low = GetLowByte(Data_Packet.checksum);
+	byte checksum_high = GetHighByte(Data_Packet.checksum);
+	CheckParsing(buffer[length-2], checksum_low, checksum_low, "Checksum_LOW", UseSerialDebug);
+	CheckParsing(buffer[length-1], checksum_high, checksum_high, "Checksum_HIGH", UseSerialDebug);
+}
 
 // checks to see if the byte is the proper value, and logs it to the serial channel if not
-bool Response_Packet::CheckParsing(byte b, byte propervalue, byte alternatevalue, const char* varname, bool UseSerialDebug)
+bool Data_Packet::CheckParsing(byte b, byte propervalue, byte alternatevalue, const char* varname, bool UseSerialDebug)
 {
 	bool retval = (b != propervalue) && (b != alternatevalue);
 	if ((UseSerialDebug) && (retval))
 	{
-		Serial.print("Response_Packet parsing error ");
+		Serial.print("Data_Packet parsing error ");
 		Serial.print(varname);
 		Serial.print(" ");
 		Serial.print(propervalue, HEX);
@@ -208,18 +260,40 @@ bool Response_Packet::CheckParsing(byte b, byte propervalue, byte alternatevalue
 	}
   return retval;
 }
-#ifndef __GNUC__
-#pragma endregion
-#endif  //__GNUC__
 
-#ifndef __GNUC__
-#pragma region -= Data_Packet =-
-#endif  //__GNUC__
-//void Data_Packet::StartNewPacket()
-//{
-//	Data_Packet::NextPacketID = 0;
-//	Data_Packet::CheckSum = 0;
-//}
+// calculates the checksum from the bytes in the packet
+word Data_Packet::CalculateChecksum(byte* buffer, int length)
+{
+	word checksum = Data_Packet.checksum;
+	for (int i=0; i<length; i++)
+	{
+		checksum +=buffer[i];
+	}
+	return checksum;
+}
+
+// Returns the high byte from a word// calculates the checksum from the bytes in the packet
+word Data_Packet::CalculateChecksum(byte* buffer, int length)
+{
+	word checksum = 0;
+	for (int i=0; i<length; i++)
+	{
+		checksum +=buffer[i];
+	}
+	return checksum;
+}
+
+// Returns the high byte from a word
+byte Data_Packet::GetHighByte(word w)
+{
+	return (byte)(w>>8)&0x00FF;
+}
+
+// Returns the low byte from a word
+byte Data_Packet::GetLowByte(word w)
+{
+	return (byte)w&0x00FF;
+}
 #ifndef __GNUC__
 #pragma endregion
 #endif  //__GNUC__
@@ -655,6 +729,28 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 	return retval;
 
 }
+
+// Gets an image that is qvga 160x120 (19200 bytes) and returns it in 150 Data_Packets
+// Use StartDataDownload, and then GetNextDataPacket until done
+// Returns: True (device confirming download starting)
+	// Not implemented due to memory restrictions on the arduino
+	// may revisit this if I find a need for it
+/*bool FPS_GT511C3::GetRawImage()
+{
+    if (UseSerialDebug) Serial.println("FPS - GetRawImage");
+	Command_Packet* cp = new Command_Packet();
+	cp->Command = Command_Packet::Commands::GetRawImage;
+	byte* packetbytes = cp->GetPacketBytes();
+	delete cp;
+	SendCommand(packetbytes, 12);
+	Response_Packet* rp = GetResponse();
+	bool retval = rp->ACK;
+	delete rp;
+	delete packetbytes;
+	return retval;
+
+	//return false;
+}*/
 #ifndef __GNUC__
 #pragma endregion
 #endif  //__GNUC__
@@ -668,18 +764,6 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
 //bool FPS_GT511C3::GetImage()
-//{
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-	//return false;
-//}
-
-// Gets an image that is qvga 160x120 (19200 bytes) and returns it in 150 Data_Packets
-// Use StartDataDownload, and then GetNextDataPacket until done
-// Returns: True (device confirming download starting)
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-//bool FPS_GT511C3::GetRawImage()
 //{
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
@@ -719,23 +803,6 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
 	//return -1;
-//}
-
-// resets the Data_Packet class, and gets ready to download
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-//void FPS_GT511C3::StartDataDownload()
-//{
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-//}
-
-// Returns the next data packet
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-//Data_Packet GetNextDataPacket()
-//{
-//	return 0;
 //}
 
 // Commands that are not implemented (and why)
@@ -800,6 +867,92 @@ Response_Packet* FPS_GT511C3::GetResponse()
 		Serial.println();
 	}
 	return rp;
+};
+
+// Gets the data (length bytes) from the software serial channel (and waits for it)
+// and sends it over serial sommunications
+void FPS_GT511C3::GetData(int length)
+{
+	byte firstbyte = 0;
+	byte secondbyte = 0;
+	bool done = false;
+	_serial.listen();
+	while (done == false)
+	{
+		firstbyte = (byte)_serial.read();
+		if (firstbyte == Data_Packet()::DATA_START_CODE_1)
+		{
+		    secondbyte = (byte)_serial.read();
+		    if (secondbyte == Data_Packet()::DATA_START_CODE_2)
+            {
+                done = true;
+            }
+		}
+	}
+
+    byte* firstdata = new byte[4];
+	firstdata[0] = firstbyte;
+	firstdata[1] = secondbyte;
+	for (int i=2; i < 4; i++)
+	{
+		while (_serial.available() == false) delay(10);
+		firstdata[i]= (byte) _serial.read();
+	}
+	Data_Packet* dp = new Data_Packet(firstdata, UseSerialDebug);
+	if(UseSerialDebug)
+    {
+        Serial.print("FPS - RECV: ");
+		SendToSerial(firstdata, 4);
+		Serial.println();
+		Serial.println();
+    }
+    delete firstdata;
+
+	numberPacketsNeeded = (length-4) / 128;
+	bool smallLastPacket = false;
+	int lastPacketSize = (length-4) % 128;
+	if(lastPacketSize != 0)
+	{
+            numberPacketsNeeded++;
+            smallLastPacket = true;
+	}
+
+	for (int packetCount=1; packetCount < numberPacketsNeeded; packetCount++)
+    {
+        byte* data = new byte[128];
+        for (int i=0; i < 128; i++)
+        {
+            while (_serial.available() == false) delay(10);
+            data[i]= (byte) _serial.read();
+        }
+        dp.GetData(data, UseSerialDebug);
+        if(UseSerialDebug)
+        {
+            Serial.print("FPS - RECV: ");
+            SendToSerial(data, 128);
+            Serial.println();
+            Serial.println();
+        }
+        delete data;
+	}
+
+	byte* lastdata = new byte[lastPacketSize];
+	for (int i=0; i < lastPacketSize; i++)
+	{
+		while (_serial.available() == false) delay(10);
+		lastdata[i]= (byte) _serial.read();
+	}
+	dp.GetLastData(lastdata, lastPacketSize, UseSerialDebug);
+	if(UseSerialDebug)
+    {
+        Serial.print("FPS - RECV: ");
+		SendToSerial(lastdata, lastPacketSize);
+		Serial.println();
+		Serial.println();
+    }
+    delete lastdata;
+
+	return;
 };
 
 // sends the bye aray to the serial debugger in our hex format EX: "00 AF FF 10 00 13"

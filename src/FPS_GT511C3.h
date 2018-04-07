@@ -61,13 +61,13 @@ class Command_Packet
 		};
 
 		Commands::Commands_Enum Command;
-		byte Parameter[4];								// Parameter 4 bytes, changes meaning depending on command							
+		byte Parameter[4];								// Parameter 4 bytes, changes meaning depending on command
 		byte* GetPacketBytes();							// returns the bytes to be transmitted
 		void ParameterFromInt(int i);
 
 		Command_Packet();
 
-	private: 
+	private:
 		static const byte COMMAND_START_CODE_1 = 0x55;	// Static byte to mark the beginning of a command packet	-	never changes
 		static const byte COMMAND_START_CODE_2 = 0xAA;	// Static byte to mark the beginning of a command packet	-	never changes
 		static const byte COMMAND_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
@@ -75,7 +75,7 @@ class Command_Packet
 		byte command[2];								// Command 2 bytes
 
 		word _CalculateChecksum();						// Checksum is calculated using byte addition
-		byte GetHighByte(word w);						
+		byte GetHighByte(word w);
 		byte GetLowByte(word w);
 };
 #ifndef __GNUC__
@@ -86,7 +86,7 @@ class Command_Packet
 #pragma region -= Response_Packet =-
 #endif  //__GNUC__
 /*
-	Response_Packet represents the returned data from the finger print scanner 
+	Response_Packet represents the returned data from the finger print scanner
 */
 class Response_Packet
 {
@@ -132,10 +132,10 @@ class Response_Packet
 		static const byte COMMAND_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)							-	theoretically never changes
 		int IntFromParameter();
 
-	private: 
+	private:
 		bool CheckParsing(byte b, byte propervalue, byte alternatevalue, const char* varname, bool UseSerialDebug);
 		word CalculateChecksum(byte* buffer, int length);
-		byte GetHighByte(word w);						
+		byte GetHighByte(word w);
 		byte GetLowByte(word w);
 };
 #ifndef __GNUC__
@@ -143,22 +143,27 @@ class Response_Packet
 #endif  //__GNUC__
 
 #ifndef __GNUC__
-#pragma region -= Data_Packet =- 
+#pragma region -= Data_Packet =-
 #endif  //__GNUC__
 // Data Mule packet for receiving large data(in 128 byte pieces) from the FPS
 // This class can only transmit one packet at a time
-//class Data_Packet
-//{
-//public:
-//	static int CheckSum;
-//	int PacketID;
-//	int ValidByteLength;
-//	byte Data[128];
-//	void StartNewPacket();
-//	bool IsLastPacket;
-//private:
-//	static int NextPacketID;
-//};
+class Data_Packet
+{
+public:
+    Data_Packet(byte* buffer, bool UseSerialDebug);
+    word checksum = 0;
+    static const byte DATA_START_CODE_1 = 0x5A;	// Static byte to mark the beginning of a data packet	-	never changes
+    static const byte DATA_START_CODE_2 = 0xA5;	// Static byte to mark the beginning of a data packet	-	never changes
+    static const byte DATA_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
+    static const byte DATA_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)
+private:
+	void GetData(byte* buffer, bool UseSerialDebug);
+	void GetLastData(byte* buffer, int length, bool UseSerialDebug);
+	bool CheckParsing(byte b, byte propervalue, byte alternatevalue, const char* varname, bool UseSerialDebug);
+	word CalculateChecksum(byte* buffer, int length);
+    byte GetHighByte(word w);
+    byte GetLowByte(word w);
+};
 #ifndef __GNUC__
 #pragma endregion
 #endif  //__GNUC__
@@ -169,9 +174,9 @@ class Response_Packet
 */
 class FPS_GT511C3
 {
- 
+
  public:
-	// Enables verbose debug output using hardware Serial 
+	// Enables verbose debug output using hardware Serial
 	bool UseSerialDebug;
 
 #ifndef __GNUC__
@@ -179,7 +184,7 @@ class FPS_GT511C3
 #endif  //__GNUC__
 	// Creates a new object to interface with the fingerprint scanner
 	FPS_GT511C3(uint8_t rx, uint8_t tx);
-	
+
 	// destructor
 	~FPS_GT511C3();
 #ifndef __GNUC__
@@ -202,7 +207,7 @@ class FPS_GT511C3
 	// Parameter: true turns on the backlight, false turns it off
 	// Returns: True if successful, false if not
 	bool SetLED(bool on);
-	
+
 	// Changes the baud rate of the connection
 	// Parameter: 9600 - 115200
 	// Returns: True if success, false if invalid baud
@@ -230,7 +235,7 @@ class FPS_GT511C3
 	int EnrollStart(int id);
 
 	// Gets the first scan of an enrollment
-	// Return: 
+	// Return:
 	//	0 - ACK
 	//	1 - Enroll Failed
 	//	2 - Bad finger
@@ -238,7 +243,7 @@ class FPS_GT511C3
 	int Enroll1();
 
 	// Gets the Second scan of an enrollment
-	// Return: 
+	// Return:
 	//	0 - ACK
 	//	1 - Enroll Failed
 	//	2 - Bad finger
@@ -247,7 +252,7 @@ class FPS_GT511C3
 
 	// Gets the Third scan of an enrollment
 	// Finishes Enrollment
-	// Return: 
+	// Return:
 	//	0 - ACK
 	//	1 - Enroll Failed
 	//	2 - Bad finger
@@ -315,7 +320,7 @@ class FPS_GT511C3
 	// Gets a template from the fps (498 bytes) in 4 Data_Packets
 	// Use StartDataDownload, and then GetNextDataPacket until done
 	// Parameter: 0-199 ID number
-	// Returns: 
+	// Returns:
 	//	0 - ACK Download starting
 	//	1 - Invalid position
 	//	2 - ID not used (no template to download
@@ -323,11 +328,11 @@ class FPS_GT511C3
 	// may revisit this if I find a need for it
 	//int GetTemplate(int id);
 
-	// Uploads a template to the fps 
+	// Uploads a template to the fps
 	// Parameter: the template (498 bytes)
 	// Parameter: the ID number to upload
 	// Parameter: Check for duplicate fingerprints already on fps
-	// Returns: 
+	// Returns:
 	//	0-199 - ID duplicated
 	//	200 - Uploaded ok (no duplicate if enabled)
 	//	201 - Invalid position
@@ -359,19 +364,10 @@ class FPS_GT511C3
 	void serialPrintHex(byte data);
 	void SendToSerial(byte data[], int length);
 
-	// resets the Data_Packet class, and gets ready to download
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-	//void StartDataDownload();
-
-	// Returns the next data packet 
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-	//Data_Packet GetNextDataPacket();
-
 private:
 	 void SendCommand(byte cmd[], int length);
 	 Response_Packet* GetResponse();
+	 void GetData(int length);
 	 uint8_t pin_RX,pin_TX;
 	 SoftwareSerial _serial;
 };
