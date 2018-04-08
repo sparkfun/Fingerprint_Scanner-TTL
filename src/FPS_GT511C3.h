@@ -61,22 +61,22 @@ class Command_Packet
 		};
 
 		Commands::Commands_Enum Command;
-		byte Parameter[4];								// Parameter 4 bytes, changes meaning depending on command
-		byte* GetPacketBytes();							// returns the bytes to be transmitted
-		void ParameterFromInt(int i);
+		uint8_t Parameter[4];								// Parameter 4 bytes, changes meaning depending on command
+		uint8_t* GetPacketBytes();							// returns the bytes to be transmitted
+		void ParameterFrom(uint32_t u);
 
 		Command_Packet();
 
 	private:
-		static const byte COMMAND_START_CODE_1 = 0x55;	// Static byte to mark the beginning of a command packet	-	never changes
-		static const byte COMMAND_START_CODE_2 = 0xAA;	// Static byte to mark the beginning of a command packet	-	never changes
-		static const byte COMMAND_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
-		static const byte COMMAND_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)							-	theoretically never changes
-		byte command[2];								// Command 2 bytes
+		static const uint8_t COMMAND_START_CODE_1 = 0x55;	// Static byte to mark the beginning of a command packet	-	never changes
+		static const uint8_t COMMAND_START_CODE_2 = 0xAA;	// Static byte to mark the beginning of a command packet	-	never changes
+		static const uint8_t COMMAND_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
+		static const uint8_t COMMAND_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)							-	theoretically never changes
+		uint8_t command[2];								// Command 2 bytes
 
-		word _CalculateChecksum();						// Checksum is calculated using byte addition
-		byte GetHighByte(word w);
-		byte GetLowByte(word w);
+		uint16_t _CalculateChecksum();						// Checksum is calculated using byte addition
+		uint8_t GetHighByte(word w);
+		uint8_t GetLowByte(word w);
 };
 #ifndef __GNUC__
 #pragma endregion
@@ -120,23 +120,23 @@ class Response_Packet
 
 				static Errors_Enum ParseFromBytes(byte high, byte low);
 		};
-		Response_Packet(byte* buffer, bool UseSerialDebug);
+		Response_Packet(uint8_t* buffer, bool UseSerialDebug);
 		ErrorCodes::Errors_Enum Error;
-		byte RawBytes[12];
-		byte ParameterBytes[4];
-		byte ResponseBytes[2];
+		uint8_t RawBytes[12];
+		uint8_t ParameterBytes[4];
+		uint8_t ResponseBytes[2];
 		bool ACK;
-		static const byte COMMAND_START_CODE_1 = 0x55;	// Static byte to mark the beginning of a command packet	-	never changes
-		static const byte COMMAND_START_CODE_2 = 0xAA;	// Static byte to mark the beginning of a command packet	-	never changes
-		static const byte COMMAND_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
-		static const byte COMMAND_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)							-	theoretically never changes
-		int IntFromParameter();
+		static const uint8_t COMMAND_START_CODE_1 = 0x55;	// Static byte to mark the beginning of a command packet	-	never changes
+		static const uint8_t COMMAND_START_CODE_2 = 0xAA;	// Static byte to mark the beginning of a command packet	-	never changes
+		static const uint8_t COMMAND_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
+		static const uint8_t COMMAND_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)							-	theoretically never changes
+		uint32_t FromParameter();
 
 	private:
-		bool CheckParsing(byte b, byte propervalue, byte alternatevalue, const char* varname, bool UseSerialDebug);
-		word CalculateChecksum(byte* buffer, int length);
-		byte GetHighByte(word w);
-		byte GetLowByte(word w);
+		bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname, bool UseSerialDebug);
+		uint16_t CalculateChecksum(uint8_t* buffer, uint16_t length);
+		uint8_t GetHighByte(uint16_t w);
+		uint8_t GetLowByte(uint16_t w);
 };
 #ifndef __GNUC__
 #pragma endregion
@@ -150,22 +150,22 @@ class Response_Packet
 class Data_Packet
 {
 public:
-    Data_Packet(byte* buffer, bool UseSerialDebug);
-    word checksum = 0;
-    static const byte DATA_START_CODE_1 = 0x5A;	// Static byte to mark the beginning of a data packet	-	never changes
-    static const byte DATA_START_CODE_2 = 0xA5;	// Static byte to mark the beginning of a data packet	-	never changes
-    static const byte DATA_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
-    static const byte DATA_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)
+    Data_Packet(uint8_t* buffer, bool UseSerialDebug);
+    uint16_t checksum = 0;
+    static const uint8_t DATA_START_CODE_1 = 0x5A;	// Static byte to mark the beginning of a data packet	-	never changes
+    static const uint8_t DATA_START_CODE_2 = 0xA5;	// Static byte to mark the beginning of a data packet	-	never changes
+    static const uint8_t DATA_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
+    static const uint8_t DATA_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)
 
-    void GetData(byte* buffer, bool UseSerialDebug);
-	void GetLastData(byte* buffer, int length, bool UseSerialDebug);
+    void GetData(uint8_t* buffer, bool UseSerialDebug);
+	void GetLastData(uint8_t* buffer, uint16_t length, bool UseSerialDebug);
 private:
-	bool CheckParsing(byte b, byte propervalue, byte alternatevalue, const char* varname, bool UseSerialDebug);
-	word CalculateChecksum(byte* buffer, int length);
-    byte GetHighByte(word w);
-    byte GetLowByte(word w);
-    void serialPrintHex(byte data);
-    void SendToSerial(byte data[], int length);
+	bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname, bool UseSerialDebug);
+	uint16_t CalculateChecksum(uint8_t* buffer, uint16_t length);
+    uint8_t GetHighByte(uint16_t w);
+    uint8_t GetLowByte(uint16_t w);
+    void serialPrintHex(uint8_t data);
+    void SendToSerial(uint8_t data[], uint16_t length);
 };
 #ifndef __GNUC__
 #pragma endregion
@@ -186,7 +186,7 @@ class FPS_GT511C3
 	#pragma region -= Constructor/Destructor =-
 #endif  //__GNUC__
 	// Creates a new object to interface with the fingerprint scanner
-	FPS_GT511C3(uint8_t rx, uint8_t tx);
+	FPS_GT511C3(uint8_t rx, uint8_t tx, uint32_t baud = 9600);
 
 	// destructor
 	~FPS_GT511C3();
@@ -214,18 +214,17 @@ class FPS_GT511C3
 	// Changes the baud rate of the connection
 	// Parameter: 9600 - 115200
 	// Returns: True if success, false if invalid baud
-	// NOTE: Untested (don't have a logic level changer and a voltage divider is too slow)
-	bool ChangeBaudRate(unsigned long baud);
+	bool ChangeBaudRate(uint32_t baud);
 
 	// Gets the number of enrolled fingerprints
 	// Return: The total number of enrolled fingerprints
-	int GetEnrollCount();
+	uint16_t GetEnrollCount();
 
 	// checks to see if the ID number is in use or not
 	// Parameter: 0-2999, if using GT-521F52
         //            0-199, if using GT-521F32/GT-511C3
 	// Return: True if the ID number is enrolled, false if not
-	bool CheckEnrolled(int id);
+	bool CheckEnrolled(uint16_t id);
 
 	// Starts the Enrollment Process
 	// Parameter: 0-2999, if using GT-521F52
@@ -235,7 +234,7 @@ class FPS_GT511C3
 	//	1 - Database is full
 	//	2 - Invalid Position
 	//	3 - Position(ID) is already used
-	int EnrollStart(int id);
+	uint8_t EnrollStart(uint16_t id);
 
 	// Gets the first scan of an enrollment
 	// Return:
@@ -243,7 +242,7 @@ class FPS_GT511C3
 	//	1 - Enroll Failed
 	//	2 - Bad finger
 	//	3 - ID in use
-	int Enroll1();
+	uint8_t Enroll1();
 
 	// Gets the Second scan of an enrollment
 	// Return:
@@ -251,7 +250,7 @@ class FPS_GT511C3
 	//	1 - Enroll Failed
 	//	2 - Bad finger
 	//	3 - ID in use
-	int Enroll2();
+	uint8_t Enroll2();
 
 	// Gets the Third scan of an enrollment
 	// Finishes Enrollment
@@ -260,7 +259,7 @@ class FPS_GT511C3
 	//	1 - Enroll Failed
 	//	2 - Bad finger
 	//	3 - ID in use
-	int Enroll3();
+	uint8_t Enroll3();
 
 	// Checks to see if a finger is pressed on the FPS
 	// Return: true if finger pressed, false if not
@@ -268,7 +267,7 @@ class FPS_GT511C3
 
 	// Deletes the specified ID (enrollment) from the database
 	// Returns: true if successful, false if position invalid
-	bool DeleteID(int ID);
+	bool DeleteID(uint16_t ID);
 
 	// Deletes all IDs (enrollments) from the database
 	// Returns: true if successful, false if db is empty
@@ -282,7 +281,7 @@ class FPS_GT511C3
 	//	1 - Invalid Position
 	//	2 - ID is not in use
 	//	3 - Verified FALSE (not the correct finger)
-	int Verify1_1(int id);
+	uint8_t Verify1_1(uint16_t id);
 
 	// Checks the currently pressed finger against all enrolled fingerprints
 	// Returns:
@@ -292,7 +291,7 @@ class FPS_GT511C3
         //      Failed to find the fingerprint in the database
         // 	     3000, if using GT-521F52
         //           200, if using GT-521F32/GT-511C3
-	int Identify1_N();
+	uint16_t Identify1_N();
 
 	// Captures the currently pressed finger into onboard ram
 	// Parameter: true for high quality image(slower), false for low quality image (faster)
@@ -358,13 +357,13 @@ class FPS_GT511C3
 	#pragma endregion
 #endif  //__GNUC__
 
-	void serialPrintHex(byte data);
-	void SendToSerial(byte data[], int length);
+	void serialPrintHex(uint8_t data);
+	void SendToSerial(uint8_t data[], uint16_t length);
 
 private:
-	 void SendCommand(byte cmd[], int length);
+	 void SendCommand(uint8_t cmd[], uint16_t length);
 	 Response_Packet* GetResponse();
-	 void GetData(int length);
+	 void GetData(uint16_t length);
 	 uint8_t pin_RX,pin_TX;
 	 SoftwareSerial _serial;
 };
