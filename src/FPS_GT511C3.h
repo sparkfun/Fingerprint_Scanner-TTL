@@ -29,7 +29,7 @@ class Command_Packet
 					Open				= 0x01,		// Open Initialization
 					Close				= 0x02,		// Close Termination
 					UsbInternalCheck	= 0x03,		// UsbInternalCheck Check if the connected USB device is valid
-					ChangeEBaudRate		= 0x04,		// ChangeBaudrate Change UART baud rate
+					ChangeBaudRate		= 0x04,		// ChangeBaudrate Change UART baud rate
 					SetIAPMode			= 0x05,		// SetIAPMode Enter IAP Mode In this mode, FW Upgrade is available
 					CmosLed				= 0x12,		// CmosLed Control CMOS LED
 					GetEnrollCount		= 0x20,		// Get enrolled fingerprint count

@@ -416,7 +416,7 @@ bool FPS_GT511C3::ChangeBaudRate(unsigned long baud)
 
 		if (UseSerialDebug) Serial.println("FPS - ChangeBaudRate");
 		Command_Packet* cp = new Command_Packet();
-		cp->Command = Command_Packet::Commands::Open;
+		cp->Command = Command_Packet::Commands::ChangeBaudRate;
 		cp->ParameterFromInt(baud);
 		byte* packetbytes = cp->GetPacketBytes();
 		delete cp;
