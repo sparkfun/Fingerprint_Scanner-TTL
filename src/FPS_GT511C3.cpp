@@ -316,13 +316,15 @@ void Data_Packet::SendToSerial(uint8_t data[], uint16_t length)
 #pragma region -= Constructor/Destructor =-
 #endif  //__GNUC__
 // Creates a new object to interface with the fingerprint scanner
+// It will establish the communication to the desired baud rate if defined
 FPS_GT511C3::FPS_GT511C3(uint8_t rx, uint8_t tx, uint32_t baud)
 	: _serial(rx,tx)
 {
 	pin_RX = rx;
 	pin_TX = tx;
-	_serial.begin(baud);
 	this->UseSerialDebug = false;
+    this->Started = false;
+    desiredBaud = baud;
 };
 
 // destructor
@@ -338,8 +340,10 @@ FPS_GT511C3::~FPS_GT511C3()
 #pragma region -= Device Commands =-
 #endif  //__GNUC__
 //Initialises the device and gets ready for commands
-void FPS_GT511C3::Open()
+//Returns true if the communication established
+bool FPS_GT511C3::Open()
 {
+    if (!Started) Start();
 	if (UseSerialDebug) Serial.println("FPS - Open");
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Open;
@@ -351,8 +355,11 @@ void FPS_GT511C3::Open()
 	delete cp;
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
+	bool retval = true;
+	if (rp->ACK == false) retval = false;
 	delete rp;
 	delete packetbytes;
+	return retval;
 }
 
 // According to the DataSheet, this does nothing...
@@ -413,8 +420,7 @@ bool FPS_GT511C3::ChangeBaudRate(uint32_t baud)
 {
     if ((baud == 9600) || (baud == 19200) || (baud == 38400) || (baud == 57600) || (baud == 115200))
 	{
-
-		if (UseSerialDebug) Serial.println("FPS - ChangeBaudRate");
+        if (UseSerialDebug) Serial.println("FPS - ChangeBaudRate");
 		Command_Packet* cp = new Command_Packet();
 		cp->Command = Command_Packet::Commands::ChangeBaudRate;
 		cp->ParameterFrom(baud);
@@ -847,6 +853,114 @@ bool FPS_GT511C3::GetRawImage()
 #ifndef __GNUC__
 #pragma region -= Private Methods =-
 #endif  //__GNUC__
+// Configures the device correctly for communications at the desired baud rate
+void FPS_GT511C3::Start()
+{
+	Command_Packet* cp = new Command_Packet();
+	cp->Command = Command_Packet::Commands::Open;
+	cp->Parameter[0] = 0x00;
+	cp->Parameter[1] = 0x00;
+	cp->Parameter[2] = 0x00;
+	cp->Parameter[3] = 0x00;
+	uint8_t* packetbytes = cp->GetPacketBytes();
+	delete cp;
+
+	uint32_t baud = desiredBaud;
+    if (!(baud == 9600) && !(baud == 19200) && !(baud == 38400) && !(baud == 57600) && !(baud == 115200)) baud=9600;
+	uint32_t actualBaud = 0;
+	uint32_t BaudRates[5] = {9600, 19200, 38400, 57600, 115200};
+	for(uint8_t i = 0; i<5; i++) // Trying to find FPS baud rate
+    {
+        if(UseSerialDebug)
+        {
+            Serial.print("Establishing connection with FPS at baud rate: ");
+            Serial.print(BaudRates[i]);
+            Serial.println();
+        }
+        _serial.begin(BaudRates[i]);
+        _serial.listen();
+        SendCommand(packetbytes, 12);
+        delay(100);
+
+        uint8_t firstbyte = 0;
+        uint8_t secondbyte = 0;
+        bool done = false;
+        uint8_t byteCount = 0;
+        while (done == false && byteCount<100)
+        {
+            byteCount++;
+            if(_serial.peek() == -1) break;
+            firstbyte = (uint8_t)_serial.read();
+            if (firstbyte == Response_Packet::COMMAND_START_CODE_1)
+            {
+                if(_serial.peek() == -1) break;
+                secondbyte = (uint8_t)_serial.read();
+                if (secondbyte == Response_Packet::COMMAND_START_CODE_2)
+                {
+                    done = true;
+                }
+            }
+        }
+        if (!done)
+        {
+            while (_serial.available()) _serial.read(); // Clear Serial buffer
+        } else
+        {
+            uint8_t* resp = new uint8_t[12];
+            resp[0] = firstbyte;
+            resp[1] = secondbyte;
+            for (uint8_t i=2; i < 12; i++)
+            {
+                while (_serial.available() == false) delay(10);
+                resp[i]= (uint8_t) _serial.read();
+            }
+            if (UseSerialDebug)
+            {
+                Response_Packet* rp = new Response_Packet(resp, UseSerialDebug);
+                Serial.print("FPS - RECV: ");
+                SendToSerial(rp->RawBytes, 12);
+                Serial.println();
+                Serial.println();
+                delete rp;
+            }
+            delete resp;
+            actualBaud = BaudRates[i];
+            break;
+        }
+    }
+
+    if(UseSerialDebug)
+    {
+        Serial.print("Connection established succesfully. FPS baud rate was: ");
+        Serial.print(actualBaud);
+        Serial.println();
+        Serial.println();
+    }
+
+    if (actualBaud == 0) while(true)
+    {
+        if(UseSerialDebug)
+        {
+            Serial.print("EXCEPTION: FPS didn't answer to communications. Code execution stopped.");
+            Serial.println();
+        }
+        delay(1000); // Something went terribly wrong with the FPS, and you aren't allowed to leave
+    }
+
+    if (actualBaud != baud)
+    {
+        if(UseSerialDebug)
+        {
+            Serial.print("Undesired baud rate. Changing baud rate to: ");
+            Serial.print(baud);
+            Serial.println();
+            Serial.println();
+        }
+        ChangeBaudRate(baud);
+    }
+    Started = true;
+}
+
 // Sends the command to the software serial channel
 void FPS_GT511C3::SendCommand(uint8_t cmd[], uint16_t length)
 {

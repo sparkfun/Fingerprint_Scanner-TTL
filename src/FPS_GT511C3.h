@@ -181,11 +181,13 @@ class FPS_GT511C3
  public:
 	// Enables verbose debug output using hardware Serial
 	bool UseSerialDebug;
+	uint32_t desiredBaud;
 
 #ifndef __GNUC__
 	#pragma region -= Constructor/Destructor =-
 #endif  //__GNUC__
 	// Creates a new object to interface with the fingerprint scanner
+	// It will establish the communication to the desired baud rate if defined
 	FPS_GT511C3(uint8_t rx, uint8_t tx, uint32_t baud = 9600);
 
 	// destructor
@@ -199,7 +201,8 @@ class FPS_GT511C3
 	#pragma region -= Device Commands =-
 #endif  //__GNUC__
 	//Initialises the device and gets ready for commands
-	void Open();
+	//Returns true if the communication established
+	bool Open();
 
 	// Does not actually do anything (according to the datasheet)
 	// I implemented open, so had to do closed too... lol
@@ -361,11 +364,18 @@ class FPS_GT511C3
 	void SendToSerial(uint8_t data[], uint16_t length);
 
 private:
-	 void SendCommand(uint8_t cmd[], uint16_t length);
-	 Response_Packet* GetResponse();
-	 void GetData(uint16_t length);
-	 uint8_t pin_RX,pin_TX;
-	 SoftwareSerial _serial;
+
+    // Indicates if the communication was configured for the first time
+	bool Started;
+
+    //Configures the device correctly for communications at the desired baud rate
+    void Start();
+
+    void SendCommand(uint8_t cmd[], uint16_t length);
+    Response_Packet* GetResponse();
+    void GetData(uint16_t length);
+    uint8_t pin_RX,pin_TX;
+    SoftwareSerial _serial;
 };
 
 
