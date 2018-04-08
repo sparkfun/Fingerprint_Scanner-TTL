@@ -222,23 +222,23 @@ Data_Packet::Data_Packet(byte* buffer, bool UseSerialDebug)
 	CheckParsing(buffer[2], DATA_DEVICE_ID_1, DATA_DEVICE_ID_1, "DATA_DEVICE_ID_1", UseSerialDebug);
 	CheckParsing(buffer[3], DATA_DEVICE_ID_2, DATA_DEVICE_ID_2, "DATA_DEVICE_ID_2", UseSerialDebug);
 
-	Data_Packet.checksum = CalculateChecksum(buffer, 4);
+	this->checksum = CalculateChecksum(buffer, 4);
 }
 
 // Get a data packet (128 bytes), calculate checksum and send it to serial
-Data_Packet::GetData(byte* buffer, bool UseSerialDebug)
+void Data_Packet::GetData(byte* buffer, bool UseSerialDebug)
 {
-    FPS_GT511C3.SendToSerial(buffer, 128);
-    Data_Packet.checksum = CalculateChecksum(buffer, 128);
+    SendToSerial(buffer, 128);
+    this->checksum = CalculateChecksum(buffer, 128);
 }
 
 // Get the last data packet (<=128 bytes), calculate checksum, validate checksum received and send it to serial
-Data_Packet::GetLastData(byte* buffer, int length, bool UseSerialDebug)
+void Data_Packet::GetLastData(byte* buffer, int length, bool UseSerialDebug)
 {
-    FPS_GT511C3.SendToSerial(buffer, length-2);
-    Data_Packet.checksum = CalculateChecksum(buffer, length);
-	byte checksum_low = GetLowByte(Data_Packet.checksum);
-	byte checksum_high = GetHighByte(Data_Packet.checksum);
+    SendToSerial(buffer, length-2);
+    this->checksum = CalculateChecksum(buffer, length);
+	byte checksum_low = GetLowByte(this->checksum);
+	byte checksum_high = GetHighByte(this->checksum);
 	CheckParsing(buffer[length-2], checksum_low, checksum_low, "Checksum_LOW", UseSerialDebug);
 	CheckParsing(buffer[length-1], checksum_high, checksum_high, "Checksum_HIGH", UseSerialDebug);
 }
@@ -264,18 +264,7 @@ bool Data_Packet::CheckParsing(byte b, byte propervalue, byte alternatevalue, co
 // calculates the checksum from the bytes in the packet
 word Data_Packet::CalculateChecksum(byte* buffer, int length)
 {
-	word checksum = Data_Packet.checksum;
-	for (int i=0; i<length; i++)
-	{
-		checksum +=buffer[i];
-	}
-	return checksum;
-}
-
-// Returns the high byte from a word// calculates the checksum from the bytes in the packet
-word Data_Packet::CalculateChecksum(byte* buffer, int length)
-{
-	word checksum = 0;
+	word checksum = this->checksum;
 	for (int i=0; i<length; i++)
 	{
 		checksum +=buffer[i];
@@ -293,6 +282,27 @@ byte Data_Packet::GetHighByte(word w)
 byte Data_Packet::GetLowByte(word w)
 {
 	return (byte)w&0x00FF;
+}
+
+// sends a byte to the serial debugger in the hex format we want EX "0F"
+void Data_Packet::serialPrintHex(byte data)
+{
+  char tmp[16];
+  sprintf(tmp, "%.2X",data);
+  Serial.print(tmp);
+}
+
+// sends the bye aray to the serial debugger in our hex format EX: "00 AF FF 10 00 13"
+void Data_Packet::SendToSerial(byte data[], int length)
+{
+  boolean first=true;
+  Serial.print("\"");
+  for(int i=0; i<length; i++)
+  {
+	if (first) first=false; else Serial.print(" ");
+	serialPrintHex(data[i]);
+  }
+  Serial.print("\"");
 }
 #ifndef __GNUC__
 #pragma endregion
@@ -896,10 +906,10 @@ void FPS_GT511C3::GetData(int length)
 	while (done == false)
 	{
 		firstbyte = (byte)_serial.read();
-		if (firstbyte == Data_Packet()::DATA_START_CODE_1)
+		if (firstbyte == Data_Packet::DATA_START_CODE_1)
 		{
 		    secondbyte = (byte)_serial.read();
-		    if (secondbyte == Data_Packet()::DATA_START_CODE_2)
+		    if (secondbyte == Data_Packet::DATA_START_CODE_2)
             {
                 done = true;
             }
@@ -924,7 +934,7 @@ void FPS_GT511C3::GetData(int length)
     }
     delete firstdata;
 
-	numberPacketsNeeded = (length-4) / 128;
+	int numberPacketsNeeded = (length-4) / 128;
 	bool smallLastPacket = false;
 	int lastPacketSize = (length-4) % 128;
 	if(lastPacketSize != 0)
@@ -941,7 +951,7 @@ void FPS_GT511C3::GetData(int length)
             while (_serial.available() == false) delay(10);
             data[i]= (byte) _serial.read();
         }
-        dp.GetData(data, UseSerialDebug);
+        dp->GetData(data, UseSerialDebug);
         if(UseSerialDebug)
         {
             Serial.print("FPS - RECV: ");
@@ -958,7 +968,7 @@ void FPS_GT511C3::GetData(int length)
 		while (_serial.available() == false) delay(10);
 		lastdata[i]= (byte) _serial.read();
 	}
-	dp.GetLastData(lastdata, lastPacketSize, UseSerialDebug);
+	dp->GetLastData(lastdata, lastPacketSize, UseSerialDebug);
 	if(UseSerialDebug)
     {
         Serial.print("FPS - RECV: ");

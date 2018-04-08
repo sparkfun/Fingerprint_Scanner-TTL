@@ -156,13 +156,16 @@ public:
     static const byte DATA_START_CODE_2 = 0xA5;	// Static byte to mark the beginning of a data packet	-	never changes
     static const byte DATA_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
     static const byte DATA_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)
-private:
-	void GetData(byte* buffer, bool UseSerialDebug);
+
+    void GetData(byte* buffer, bool UseSerialDebug);
 	void GetLastData(byte* buffer, int length, bool UseSerialDebug);
+private:
 	bool CheckParsing(byte b, byte propervalue, byte alternatevalue, const char* varname, bool UseSerialDebug);
 	word CalculateChecksum(byte* buffer, int length);
     byte GetHighByte(word w);
     byte GetLowByte(word w);
+    void serialPrintHex(byte data);
+    void SendToSerial(byte data[], int length);
 };
 #ifndef __GNUC__
 #pragma endregion
