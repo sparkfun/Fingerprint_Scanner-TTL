@@ -299,6 +299,14 @@ class FPS_GT511C3
 	// Generally, use high quality for enrollment, and low quality for verification/identification
 	// Returns: True if ok, false if no finger pressed
 	bool CaptureFinger(bool highquality);
+
+    // Gets an image that is 258x202 (52116 bytes) and sends it over serial
+    // Returns: True (device confirming download)
+	bool GetImage();
+
+	// Gets an image that is qvga 160x120 (19200 bytes) and sends it over serial
+    // Returns: True (device confirming download)
+	bool GetRawImage();
 #ifndef __GNUC__
 	#pragma endregion
 #endif  //__GNUC__
@@ -306,14 +314,6 @@ class FPS_GT511C3
 #ifndef __GNUC__
 	#pragma region -= Not implemented commands =-
 #endif  //__GNUC__
-	// Gets an image that is 258x202 (52116 bytes) and sends it over serial
-    // Returns: True (device confirming download)
-	bool GetImage();
-
-	// Gets an image that is qvga 160x120 (19200 bytes) and sends it over serial
-    // Returns: True (device confirming download)
-	bool GetRawImage();
-
 	// Gets a template from the fps (498 bytes) in 4 Data_Packets
 	// Use StartDataDownload, and then GetNextDataPacket until done
 	// Parameter: 0-199 ID number
