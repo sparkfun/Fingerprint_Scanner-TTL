@@ -157,15 +157,13 @@ public:
     static const uint8_t DATA_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
     static const uint8_t DATA_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)
 
-    void GetData(uint8_t* buffer, bool UseSerialDebug);
-	void GetLastData(uint8_t* buffer, uint16_t length, bool UseSerialDebug);
+    void GetData(uint8_t buffer[], uint16_t length);
+	void GetLastData(uint8_t buffer[], uint16_t length, bool UseSerialDebug);
 private:
 	bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname, bool UseSerialDebug);
 	uint16_t CalculateChecksum(uint8_t* buffer, uint16_t length);
     uint8_t GetHighByte(uint16_t w);
     uint8_t GetLowByte(uint16_t w);
-    void serialPrintHex(uint8_t data);
-    void SendToSerial(uint8_t data[], uint16_t length);
 };
 #ifndef __GNUC__
 #pragma endregion

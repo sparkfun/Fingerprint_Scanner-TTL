@@ -217,30 +217,32 @@ uint8_t Response_Packet::GetLowByte(uint16_t w)
 #endif  //__GNUC__
 Data_Packet::Data_Packet(uint8_t* buffer, bool UseSerialDebug)
 {
-    CheckParsing(buffer[0], DATA_START_CODE_1, DATA_START_CODE_1, "DATA_START_CODE_1", UseSerialDebug);
+        // The checksum here is arguably useless and may make the serial buffer overflow
+    /*CheckParsing(buffer[0], DATA_START_CODE_1, DATA_START_CODE_1, "DATA_START_CODE_1", UseSerialDebug);
 	CheckParsing(buffer[1], DATA_START_CODE_2, DATA_START_CODE_2, "DATA_START_CODE_2", UseSerialDebug);
 	CheckParsing(buffer[2], DATA_DEVICE_ID_1, DATA_DEVICE_ID_1, "DATA_DEVICE_ID_1", UseSerialDebug);
 	CheckParsing(buffer[3], DATA_DEVICE_ID_2, DATA_DEVICE_ID_2, "DATA_DEVICE_ID_2", UseSerialDebug);
 
-	this->checksum = CalculateChecksum(buffer, 4);
+	this->checksum = CalculateChecksum(buffer, 4);*/
 }
 
 // Get a data packet (128 bytes), calculate checksum and send it to serial
-void Data_Packet::GetData(uint8_t* buffer, bool UseSerialDebug)
+void Data_Packet::GetData(uint8_t buffer[], uint16_t length)
 {
-    SendToSerial(buffer, 128);
-    this->checksum = CalculateChecksum(buffer, 128);
+    for(uint16_t i = 0; i<length; i++) Serial.write(buffer[i]);
+    //this->checksum = CalculateChecksum(buffer, 128); // Checksum slowdown
 }
 
 // Get the last data packet (<=128 bytes), calculate checksum, validate checksum received and send it to serial
 void Data_Packet::GetLastData(uint8_t* buffer, uint16_t length, bool UseSerialDebug)
 {
-    SendToSerial(buffer, length-2);
-    this->checksum = CalculateChecksum(buffer, length);
+    for(uint16_t i = 0; i<length-2, i++) Serial.write(buffer[i]);
+        // The checksum here is arguably useless and may make the serial buffer overflow
+    /*this->checksum = CalculateChecksum(buffer, length);
 	uint8_t checksum_low = GetLowByte(this->checksum);
 	uint8_t checksum_high = GetHighByte(this->checksum);
 	CheckParsing(buffer[length-2], checksum_low, checksum_low, "Checksum_LOW", UseSerialDebug);
-	CheckParsing(buffer[length-1], checksum_high, checksum_high, "Checksum_HIGH", UseSerialDebug);
+	CheckParsing(buffer[length-1], checksum_high, checksum_high, "Checksum_HIGH", UseSerialDebug);*/
 }
 
 // checks to see if the byte is the proper value, and logs it to the serial channel if not
@@ -284,26 +286,6 @@ uint8_t Data_Packet::GetLowByte(uint16_t w)
 	return (uint8_t)w&0x00FF;
 }
 
-// sends a byte to the serial debugger in the hex format we want EX "0F"
-void Data_Packet::serialPrintHex(uint8_t data)
-{
-  char tmp[16];
-  sprintf(tmp, "%.2X",data);
-  Serial.print(tmp);
-}
-
-// sends the byte array to the serial debugger in our hex format EX: "00 AF FF 10 00 13"
-void Data_Packet::SendToSerial(uint8_t data[], uint16_t length)
-{
-  boolean first=true;
-  Serial.print("\"");
-  for(uint16_t i=0; i<length; i++)
-  {
-	if (first) first=false; else Serial.print(" ");
-	serialPrintHex(data[i]);
-  }
-  Serial.print("\"");
-}
 #ifndef __GNUC__
 #pragma endregion
 #endif  //__GNUC__
@@ -764,6 +746,10 @@ bool FPS_GT511C3::GetImage()
 
 // Gets an image that is qvga 160x120 (19200 bytes) and sends it over serial
 // Returns: True (device confirming download)
+    // It only worked with baud rate at 38400-57600 in GT-511C3.
+    // Slower speeds and the FPS will shutdown. Higher speeds and the serial buffer will overflow.
+    // Make sure you are allocating enough CPU time for this task or you will overflow nonetheless.
+    // Also, avoid using UseSerialDebug for this task, since it's easier to overflow.
 bool FPS_GT511C3::GetRawImage()
 {
     if (UseSerialDebug) Serial.println("FPS - GetRawImage");
@@ -1027,7 +1013,7 @@ void FPS_GT511C3::GetData(uint16_t length)
 		}
 	}
 
-    uint8_t* firstdata = new uint8_t[4];
+    uint8_t firstdata[4];
 	firstdata[0] = firstbyte;
 	firstdata[1] = secondbyte;
 	for (uint8_t i=2; i < 4; i++)
@@ -1035,15 +1021,7 @@ void FPS_GT511C3::GetData(uint16_t length)
 		while (_serial.available() == false) delay(10);
 		firstdata[i]= (uint8_t) _serial.read();
 	}
-	Data_Packet* dp = new Data_Packet(firstdata, UseSerialDebug);
-	if(UseSerialDebug)
-    {
-        Serial.print("FPS - RECV: ");
-		SendToSerial(firstdata, 4);
-		Serial.println();
-		Serial.println();
-    }
-    delete firstdata;
+	Data_Packet dp(firstdata, UseSerialDebug);
 
 	uint16_t numberPacketsNeeded = (length-4) / 128;
 	bool smallLastPacket = false;
@@ -1054,42 +1032,36 @@ void FPS_GT511C3::GetData(uint16_t length)
             smallLastPacket = true;
 	}
 
-    uint8_t* data = new uint8_t[128];
+    uint8_t data[128];
 	for (uint16_t packetCount=1; packetCount < numberPacketsNeeded; packetCount++)
     {
         for (uint8_t i=0; i < 128; i++)
         {
-            while (_serial.available() == false) delay(10);
+            while (_serial.available() == false) delay(1);
+            if(_serial.overflow())
+            {
+                Serial.println("Overflow! Data download stopped");
+                Serial.println("Cleaning serial buffer...");
+                for (uint16_t j = 0; j<length; j++)
+                {
+                    _serial.read();
+                    delay(1);
+                }
+                Serial.println("Done!");
+                return;
+            }
             data[i]= (uint8_t) _serial.read();
         }
-        dp->GetData(data, UseSerialDebug);
-        if(UseSerialDebug)
-        {
-            Serial.print("FPS - RECV: ");
-            SendToSerial(data, 128);
-            Serial.println();
-            Serial.println();
-        }
+        dp.GetData(data, 128);
 	}
-	delete data;
 
-	uint8_t* lastdata = new uint8_t[lastPacketSize];
+	uint8_t lastdata[lastPacketSize];
 	for (uint8_t i=0; i < lastPacketSize; i++)
 	{
 		while (_serial.available() == false) delay(10);
 		lastdata[i]= (uint8_t) _serial.read();
 	}
-	dp->GetLastData(lastdata, lastPacketSize, UseSerialDebug);
-	if(UseSerialDebug)
-    {
-        Serial.print("FPS - RECV: ");
-		SendToSerial(lastdata, lastPacketSize);
-		Serial.println();
-		Serial.println();
-    }
-    delete lastdata;
-
-	return;
+	dp.GetLastData(lastdata, lastPacketSize, UseSerialDebug);
 };
 
 // sends the byte array to the serial debugger in our hex format EX: "00 AF FF 10 00 13"
