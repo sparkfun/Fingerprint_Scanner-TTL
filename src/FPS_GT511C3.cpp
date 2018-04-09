@@ -743,7 +743,7 @@ bool FPS_GT511C3::GetImage()
 	bool retval = rp->ACK;
 	delete rp;
 	delete packetbytes;
-	GetData(52116);
+	GetData(52116+6);
 	return retval;
 
 }
@@ -766,7 +766,7 @@ bool FPS_GT511C3::GetRawImage()
 	bool retval = rp->ACK;
 	delete rp;
 	delete packetbytes;
-	GetData(19200);
+	GetData(19200+6);
 	return retval;
 
 }
