@@ -234,9 +234,9 @@ void Data_Packet::GetData(uint8_t buffer[], uint16_t length)
 }
 
 // Get the last data packet (<=128 bytes), calculate checksum, validate checksum received and send it to serial
-void Data_Packet::GetLastData(uint8_t* buffer, uint16_t length, bool UseSerialDebug)
+void Data_Packet::GetLastData(uint8_t buffer[], uint16_t length, bool UseSerialDebug)
 {
-    for(uint16_t i = 0; i<length-2, i++) Serial.write(buffer[i]);
+    for(uint16_t i = 0; i<(length-2); i++) Serial.write(buffer[i]);
         // The checksum here is arguably useless and may make the serial buffer overflow
     /*this->checksum = CalculateChecksum(buffer, length);
 	uint8_t checksum_low = GetLowByte(this->checksum);
@@ -727,11 +727,15 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 
 // Gets an image that is 258x202 (52116 bytes) and sends it over serial
 // Returns: True (device confirming download)
+    // It only worked with baud rate at 38400-57600 in GT-511C3.
+    // Slower speeds and the FPS will shutdown. Higher speeds and the serial buffer will overflow.
+    // Make sure you are allocating enough CPU time for this task or you will overflow nonetheless.
+    // Also, avoid using UseSerialDebug for this task, since it's easier to overflow.
 bool FPS_GT511C3::GetImage()
 {
     if (UseSerialDebug) Serial.println("FPS - GetImage");
 	Command_Packet* cp = new Command_Packet();
-	cp->Command = Command_Packet::Commands::GetRawImage;
+	cp->Command = Command_Packet::Commands::GetImage;
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
