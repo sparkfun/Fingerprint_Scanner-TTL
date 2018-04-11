@@ -217,32 +217,36 @@ uint8_t Response_Packet::GetLowByte(uint16_t w)
 #endif  //__GNUC__
 Data_Packet::Data_Packet(uint8_t* buffer, bool UseSerialDebug)
 {
-        // The checksum here is arguably useless and may make the serial buffer overflow
-    /*CheckParsing(buffer[0], DATA_START_CODE_1, DATA_START_CODE_1, "DATA_START_CODE_1", UseSerialDebug);
-	CheckParsing(buffer[1], DATA_START_CODE_2, DATA_START_CODE_2, "DATA_START_CODE_2", UseSerialDebug);
-	CheckParsing(buffer[2], DATA_DEVICE_ID_1, DATA_DEVICE_ID_1, "DATA_DEVICE_ID_1", UseSerialDebug);
-	CheckParsing(buffer[3], DATA_DEVICE_ID_2, DATA_DEVICE_ID_2, "DATA_DEVICE_ID_2", UseSerialDebug);
+    if (UseSerialDebug)
+    {
+        CheckParsing(buffer[0], DATA_START_CODE_1, DATA_START_CODE_1, "DATA_START_CODE_1", UseSerialDebug);
+        CheckParsing(buffer[1], DATA_START_CODE_2, DATA_START_CODE_2, "DATA_START_CODE_2", UseSerialDebug);
+        CheckParsing(buffer[2], DATA_DEVICE_ID_1, DATA_DEVICE_ID_1, "DATA_DEVICE_ID_1", UseSerialDebug);
+        CheckParsing(buffer[3], DATA_DEVICE_ID_2, DATA_DEVICE_ID_2, "DATA_DEVICE_ID_2", UseSerialDebug);
 
-	this->checksum = CalculateChecksum(buffer, 4);*/
+        this->checksum = CalculateChecksum(buffer, 4);
+    }
 }
 
 // Get a data packet (128 bytes), calculate checksum and send it to serial
-void Data_Packet::GetData(uint8_t buffer[], uint16_t length)
+void Data_Packet::GetData(uint8_t buffer[], uint16_t length, bool UseSerialDebug)
 {
     for(uint16_t i = 0; i<length; i++) Serial.write(buffer[i]);
-    //this->checksum = CalculateChecksum(buffer, 128); // Checksum slowdown
+    if (UseSerialDebug) this->checksum = CalculateChecksum(buffer, 128);
 }
 
 // Get the last data packet (<=128 bytes), calculate checksum, validate checksum received and send it to serial
 void Data_Packet::GetLastData(uint8_t buffer[], uint16_t length, bool UseSerialDebug)
 {
-    for(uint16_t i = 0; i<(length-2); i++) Serial.write(buffer[i]);
-        // The checksum here is arguably useless and may make the serial buffer overflow
-    /*this->checksum = CalculateChecksum(buffer, length);
-	uint8_t checksum_low = GetLowByte(this->checksum);
-	uint8_t checksum_high = GetHighByte(this->checksum);
-	CheckParsing(buffer[length-2], checksum_low, checksum_low, "Checksum_LOW", UseSerialDebug);
-	CheckParsing(buffer[length-1], checksum_high, checksum_high, "Checksum_HIGH", UseSerialDebug);*/
+    for(uint16_t i = 0; i<length; i++) Serial.write(buffer[i]);
+    if (UseSerialDebug)
+    {
+        this->checksum = CalculateChecksum(buffer, length-2);
+        uint8_t checksum_low = GetLowByte(this->checksum);
+        uint8_t checksum_high = GetHighByte(this->checksum);
+        CheckParsing(buffer[length-2], checksum_low, checksum_low, "Checksum_LOW", UseSerialDebug);
+        CheckParsing(buffer[length-1], checksum_high, checksum_high, "Checksum_HIGH", UseSerialDebug);
+    }
 }
 
 // checks to see if the byte is the proper value, and logs it to the serial channel if not
@@ -251,7 +255,7 @@ bool Data_Packet::CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternate
 	bool retval = (b != propervalue) && (b != alternatevalue);
 	if ((UseSerialDebug) && (retval))
 	{
-		Serial.print("Data_Packet parsing error ");
+		Serial.print("\nData_Packet parsing error ");
 		Serial.print(varname);
 		Serial.print(" ");
 		Serial.print(propervalue, HEX);
@@ -718,7 +722,7 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 	return retval;
 }
 
-// Gets an image that is 258x202 (52116 bytes) and sends it over serial
+// Gets an image that is 258x202 (52116 bytes + 2 bytes checksum) and sends it over serial
 // Returns: True (device confirming download)
     // It only worked with baud rate at 38400-57600 in GT-511C3.
     // Slower speeds and the FPS will shutdown. Higher speeds and the serial buffer will overflow.
@@ -740,7 +744,7 @@ bool FPS_GT511C3::GetImage()
 	return retval;
 }
 
-// Gets an image that is qvga 160x120 (19200 bytes) and sends it over serial
+// Gets an image that is qvga 160x120 (19200 bytes + 2 bytes checksum) and sends it over serial
 // Returns: True (device confirming download)
     // It only worked with baud rate at 38400-57600 in GT-511C3.
     // Slower speeds and the FPS will shutdown. Higher speeds and the serial buffer will overflow.
@@ -762,7 +766,7 @@ bool FPS_GT511C3::GetRawImage()
 	return retval;
 }
 
-// Gets a template from the fps (498 bytes)
+// Gets a template from the fps (498 bytes + 2 bvtes checksum)
 // Parameter: 0-199 ID number
 // Returns:
 //	0 - ACK Download starting
@@ -1093,7 +1097,7 @@ void FPS_GT511C3::GetData(uint16_t length)
             }
             data[i]= (uint8_t) _serial.read();
         }
-        dp.GetData(data, 128);
+        dp.GetData(data, 128, UseSerialDebug);
 	}
 
 	uint8_t lastdata[lastPacketSize];

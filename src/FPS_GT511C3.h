@@ -157,7 +157,7 @@ public:
     static const uint8_t DATA_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
     static const uint8_t DATA_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)
 
-    void GetData(uint8_t buffer[], uint16_t length);
+    void GetData(uint8_t buffer[], uint16_t length, bool UseSerialDebug);
 	void GetLastData(uint8_t buffer[], uint16_t length, bool UseSerialDebug);
 private:
 	bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname, bool UseSerialDebug);
@@ -300,15 +300,15 @@ class FPS_GT511C3
 	// Returns: True if ok, false if no finger pressed
 	bool CaptureFinger(bool highquality);
 
-    // Gets an image that is 258x202 (52116 bytes) and sends it over serial
+    // Gets an image that is 258x202 (52116 bytes + 2 bytes checksum) and sends it over serial
     // Returns: True (device confirming download)
 	bool GetImage();
 
-	// Gets an image that is qvga 160x120 (19200 bytes) and sends it over serial
+	// Gets an image that is qvga 160x120 (19200 bytes + 2 bytes checksum) and sends it over serial
     // Returns: True (device confirming download)
 	bool GetRawImage();
 
-    // Gets a template from the fps (498 bytes)
+    // Gets a template from the fps (498 bytes + 2 bytes checksum)
 	// Parameter: 0-199 ID number
 	// Returns:
 	//	0 - ACK Download starting
