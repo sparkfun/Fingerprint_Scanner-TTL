@@ -5,7 +5,7 @@
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/Fasgort/Fingerprint_Scanner-TTL.git"
+    "url": "https://github.com/sparkfun/Fingerprint_Scanner-TTL.git"
   },
   "version": "1.2.2",
   "frameworks": "arduino",

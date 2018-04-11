@@ -16,16 +16,6 @@ Fingerprint Scanner-TTL
 
 This is a great fingerprint module from ADH-Tech that communicates over 3.3V TTL Serial so you can easily embed it into your next project. This repository contains Arduino example code to work with it. This code has been tested with GT-521F32, GT-521F52, GT-511C3, and GT-511C1R.
 
-Fork purpose
-====================================
-This fork implements a few of the remaining commands needed to extract the fingerprint DB contained in the original device, allowing to implement a server-based IoT service.
-
-Commands to implement:
-* bool GetImage()
-* bool GetRawImage()
-* int GetTemplate(int)
-* int SetTemplate(byte*, int, bool)
-
 Repository Contents
 -------------------
 * **/examples** - Example code to interface with the sensor.
