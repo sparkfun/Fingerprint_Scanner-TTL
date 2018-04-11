@@ -728,19 +728,42 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
     // Slower speeds and the FPS will shutdown. Higher speeds and the serial buffer will overflow.
     // Make sure you are allocating enough CPU time for this task or you will overflow nonetheless.
     // Also, avoid using UseSerialDebug for this task, since it's easier to overflow.
-bool FPS_GT511C3::GetImage()
+    // WARNING: This method is completely broken, but you can give it a try.
+    // Patched method will return a 232x139 bitmap 8-bit image, 32248 bytes.
+// Parameter: true to ignore the documentation and get valid image data.
+bool FPS_GT511C3::GetImage(bool patched)
 {
     if (UseSerialDebug) Serial.println("FPS - GetImage");
-	Command_Packet* cp = new Command_Packet();
-	cp->Command = Command_Packet::Commands::GetImage;
-	uint8_t* packetbytes = cp->GetPacketBytes();
-	delete cp;
-	SendCommand(packetbytes, 12);
+    Command_Packet* cp = new Command_Packet();
+    cp->Command = Command_Packet::Commands::GetImage;
+    uint8_t* packetbytes = cp->GetPacketBytes();
+    delete cp;
+    SendCommand(packetbytes, 12);
     delete packetbytes;
-	Response_Packet* rp = GetResponse();
-	bool retval = rp->ACK;
-	delete rp;
-	GetData(52116+6);
+    Response_Packet* rp = GetResponse();
+    bool retval = rp->ACK;
+    delete rp;
+
+    if (!patched) GetData(52116+6);
+    else
+    {
+        // Alright, for some reason, in my GT-511C3, there are around 15000 trash bytes being sent
+        // before the actual image is sent. The actual number is random, but the image will come
+        // after a long block of empty bytes. Not only that, the resolution of the image is actually
+        // 232x139 (maybe taller) and not whatever the documentation says. This wasn't fun to debug.
+        for (uint16_t i = 0; i<10000; i++) // This goes past the initial non-zero trash block
+            {
+                while(!_serial.available()) delay(10);
+                _serial.read();
+            }
+        while(_serial.peek() <= 0) _serial.read(); // This looks for the actual first byte of image data
+
+        for(uint16_t i = 0; i<32248; i++) // Bytes for a 232x139 bitmap 8-bit image
+        {
+            while(!_serial.available()) delay(10);
+            Serial.write((uint8_t)_serial.read());
+        }
+    }
 	return retval;
 }
 

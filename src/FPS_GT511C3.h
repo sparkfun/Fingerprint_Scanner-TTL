@@ -301,8 +301,10 @@ class FPS_GT511C3
 	bool CaptureFinger(bool highquality);
 
     // Gets an image that is 258x202 (52116 bytes + 2 bytes checksum) and sends it over serial
+    // WARNING: The documentation is totally wrong (at least in GT-511C3). Check implementation comments.
     // Returns: True (device confirming download)
-	bool GetImage();
+    // Parameter: true to ignore the documentation and get valid image data.
+	bool GetImage(bool patched = false);
 
 	// Gets an image that is qvga 160x120 (19200 bytes + 2 bytes checksum) and sends it over serial
     // Returns: True (device confirming download)
