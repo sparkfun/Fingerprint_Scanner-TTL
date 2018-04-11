@@ -92,10 +92,10 @@ Command_Packet::Command_Packet()
 // creates and parses a response packet from the finger print scanner
 Response_Packet::Response_Packet(uint8_t* buffer, bool UseSerialDebug)
 {
-	CheckParsing(buffer[0], COMMAND_START_CODE_1, COMMAND_START_CODE_1, "COMMAND_START_CODE_1", UseSerialDebug);
-	CheckParsing(buffer[1], COMMAND_START_CODE_2, COMMAND_START_CODE_2, "COMMAND_START_CODE_2", UseSerialDebug);
-	CheckParsing(buffer[2], COMMAND_DEVICE_ID_1, COMMAND_DEVICE_ID_1, "COMMAND_DEVICE_ID_1", UseSerialDebug);
-	CheckParsing(buffer[3], COMMAND_DEVICE_ID_2, COMMAND_DEVICE_ID_2, "COMMAND_DEVICE_ID_2", UseSerialDebug);
+	CheckParsing(buffer[0], RESPONSE_START_CODE_1, RESPONSE_START_CODE_1, "RESPONSE_START_CODE_1", UseSerialDebug);
+	CheckParsing(buffer[1], RESPONSE_START_CODE_2, RESPONSE_START_CODE_2, "RESPONSE_START_CODE_2", UseSerialDebug);
+	CheckParsing(buffer[2], RESPONSE_DEVICE_ID_1, RESPONSE_DEVICE_ID_1, "RESPONSE_DEVICE_ID_1", UseSerialDebug);
+	CheckParsing(buffer[3], RESPONSE_DEVICE_ID_2, RESPONSE_DEVICE_ID_2, "RESPONSE_DEVICE_ID_2", UseSerialDebug);
 	CheckParsing(buffer[8], 0x30, 0x31, "AckNak_LOW", UseSerialDebug);
 	if (buffer[8] == 0x30) ACK = true; else ACK = false;
 	CheckParsing(buffer[9], 0x00, 0x00, "AckNak_HIGH", UseSerialDebug);
@@ -336,11 +336,11 @@ bool FPS_GT511C3::Open()
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
+	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	bool retval = true;
 	if (rp->ACK == false) retval = false;
 	delete rp;
-	delete packetbytes;
 	return retval;
 }
 
@@ -358,9 +358,9 @@ void FPS_GT511C3::Close()
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
+	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	delete rp;
-	delete packetbytes;
 };
 
 // Turns on or off the LED backlight
@@ -386,11 +386,11 @@ bool FPS_GT511C3::SetLED(bool on)
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
+	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	bool retval = true;
 	if (rp->ACK == false) retval = false;
 	delete rp;
-	delete packetbytes;
 	return retval;
 };
 
@@ -409,11 +409,11 @@ bool FPS_GT511C3::ChangeBaudRate(uint32_t baud)
 		uint8_t* packetbytes = cp->GetPacketBytes();
 		delete cp;
 		SendCommand(packetbytes, 12);
+		delete packetbytes;
 		Response_Packet* rp = GetResponse();
 		bool retval = rp->ACK;
 		if (retval) _serial.begin(baud);
 		delete rp;
-		delete packetbytes;
 		return retval;
 	}
 	return false;
@@ -433,11 +433,10 @@ uint16_t FPS_GT511C3::GetEnrollCount()
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
+	delete packetbytes;
 	Response_Packet* rp = GetResponse();
-
 	uint32_t retval = rp->FromParameter();
 	delete rp;
-	delete packetbytes;
 	return retval;
 }
 
@@ -509,8 +508,8 @@ uint8_t FPS_GT511C3::Enroll1()
 	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	uint32_t retval = rp->FromParameter();
-//Change to  "retval < 3000", if using GT-521F52
-//Leave "reval < 200", if using GT-521F32/GT-511C3
+    //Change to  "retval < 3000", if using GT-521F52
+    //Leave "reval < 200", if using GT-521F32/GT-511C3
 	if (retval < 200) retval = 3; else retval = 0;
 	if (rp->ACK == false)
 	{
@@ -538,8 +537,8 @@ uint8_t FPS_GT511C3::Enroll2()
 	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	uint32_t retval = rp->FromParameter();
-//Change to "retval < 3000", if using GT-521F52
-//Leave "reval < 200", if using GT-521F32/GT-511C3
+    //Change to "retval < 3000", if using GT-521F52
+    //Leave "reval < 200", if using GT-521F32/GT-511C3
 	if (retval < 200) retval = 3; else retval = 0;
 	if (rp->ACK == false)
 	{
@@ -568,9 +567,9 @@ uint8_t FPS_GT511C3::Enroll3()
 	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	uint32_t retval = rp->FromParameter();
-//Change to "retval < 3000", if using GT-521F52
-//Leave "reval < 200", if using GT-521F32/GT-511C3
-        if (retval < 200) retval = 3; else retval = 0;
+    //Change to "retval < 3000", if using GT-521F52
+    //Leave "reval < 200", if using GT-521F32/GT-511C3
+    if (retval < 200) retval = 3; else retval = 0;
 	if (rp->ACK == false)
 	{
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_ENROLL_FAILED) retval = 1;
@@ -590,16 +589,11 @@ bool FPS_GT511C3::IsPressFinger()
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
+	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	bool retval = false;
-/*  int pval = rp->ParameterBytes[0];
-	pval += rp->ParameterBytes[1];
-	pval += rp->ParameterBytes[2];
-	pval += rp->ParameterBytes[3];
-	if (pval == 0) retval = true;   */
     if (!rp->ParameterBytes[0] && !rp->ParameterBytes[1] && !rp->ParameterBytes[2] && !rp->ParameterBytes[3]) retval = true;
 	delete rp;
-	delete packetbytes;
 	return retval;
 }
 
@@ -616,10 +610,10 @@ bool FPS_GT511C3::DeleteID(uint16_t id)
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
+	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	bool retval = rp->ACK;
 	delete rp;
-	delete packetbytes;
 	return retval;
 }
 
@@ -632,10 +626,10 @@ bool FPS_GT511C3::DeleteAll()
 	cp->Command = Command_Packet::Commands::DeleteAll;
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	SendCommand(packetbytes, 12);
+	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	bool retval = rp->ACK;
 	delete rp;
-	delete packetbytes;
 	delete cp;
 	return retval;
 }
@@ -657,6 +651,7 @@ uint8_t FPS_GT511C3::Verify1_1(uint16_t id)
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
+	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	uint8_t retval = 0;
 	if (rp->ACK == false)
@@ -667,7 +662,6 @@ uint8_t FPS_GT511C3::Verify1_1(uint16_t id)
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_VERIFY_FAILED) retval = 3;
 	}
 	delete rp;
-	delete packetbytes;
 	return retval;
 }
 
@@ -687,13 +681,13 @@ uint16_t FPS_GT511C3::Identify1_N()
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
+	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	uint32_t retval = rp->FromParameter();
 //Change to "retval > 3000" and "retval = 3000", if using GT-521F52
 //Leave "reval > 200" and "retval = 200", if using GT-521F32/GT-511C3
 	if (retval > 200) retval = 200;
 	delete rp;
-	delete packetbytes;
 	return retval;
 }
 
@@ -717,12 +711,11 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
+	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	bool retval = rp->ACK;
 	delete rp;
-	delete packetbytes;
 	return retval;
-
 }
 
 // Gets an image that is 258x202 (52116 bytes) and sends it over serial
@@ -739,13 +732,12 @@ bool FPS_GT511C3::GetImage()
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
+    delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	bool retval = rp->ACK;
 	delete rp;
-	delete packetbytes;
 	GetData(52116+6);
 	return retval;
-
 }
 
 // Gets an image that is qvga 160x120 (19200 bytes) and sends it over serial
@@ -762,13 +754,94 @@ bool FPS_GT511C3::GetRawImage()
 	uint8_t* packetbytes = cp->GetPacketBytes();
 	delete cp;
 	SendCommand(packetbytes, 12);
+	delete packetbytes;
 	Response_Packet* rp = GetResponse();
 	bool retval = rp->ACK;
 	delete rp;
-	delete packetbytes;
 	GetData(19200+6);
 	return retval;
+}
 
+// Gets a template from the fps (498 bytes)
+// Parameter: 0-199 ID number
+// Returns:
+//	0 - ACK Download starting
+//	1 - Invalid position
+//	2 - ID not used (no template to download
+uint8_t FPS_GT511C3::GetTemplate(uint16_t id)
+{
+    if (UseSerialDebug) Serial.println("FPS - GetTemplate");
+	Command_Packet* cp = new Command_Packet();
+	cp->Command = Command_Packet::Commands::GetTemplate;
+	cp->ParameterFrom(id);
+	uint8_t* packetbytes = cp->GetPacketBytes();
+	delete cp;
+	SendCommand(packetbytes, 12);
+    delete packetbytes;
+	Response_Packet* rp = GetResponse();
+	if(rp->ACK)
+	{
+        delete rp;
+        GetData(498+6);
+        return 0;
+	} else
+	{
+	    uint32_t retval = rp->FromParameter();
+	    delete rp;
+	    return retval;
+	}
+}
+
+// Uploads a template to the fps
+// Parameter: the template (498 bytes)
+// Parameter: the ID number to upload
+// Parameter: Check for duplicate fingerprints already on fps
+// Returns:
+// -1 - Undefined error (shouldn't ever happen)
+//	0 - Uploaded ok (no duplicate if enabled)
+//	1 - ID duplicated
+//	2 - Invalid position
+//	3 - Communications error
+//	4 - Device error
+uint16_t FPS_GT511C3::SetTemplate(byte* tmplt, uint16_t id, bool duplicateCheck)
+{
+    if (UseSerialDebug) Serial.println("FPS - SetTemplate");
+	Command_Packet* cp = new Command_Packet();
+	cp->Command = Command_Packet::Commands::SetTemplate;
+	cp->ParameterFrom(0xFFFF0000 * !duplicateCheck + id); // Will set the HIWORD if duplicateCheck = false
+	uint8_t* packetbytes = cp->GetPacketBytes();
+	delete cp;
+	SendCommand(packetbytes, 12);
+    delete packetbytes;
+	Response_Packet* rp = GetResponse();
+	if(!rp->ACK)
+	{
+        delete rp;
+        return 2;
+	} else
+	{
+	    SendCommand(tmplt, 498); // Not actually a command ;)
+	    rp = GetResponse();
+	    if (rp->ACK)
+        {
+            delete rp;
+            return 0;
+        } else
+        {
+            //Change to  "retval < 3000", if using GT-521F52
+            //Leave "reval < 200", if using GT-521F32/GT-511C3
+            if (rp->FromParameter() < 200)
+            {
+                delete rp;
+                return 1;
+            }
+            uint16_t error = rp->Error;
+            delete rp;
+            if (error == Response_Packet::ErrorCodes::NACK_COMM_ERR) return 3;
+            if (error == Response_Packet::ErrorCodes::NACK_DEV_ERR) return 4;
+            return -1; // Undefined error
+        }
+	}
 }
 #ifndef __GNUC__
 #pragma endregion
@@ -777,53 +850,6 @@ bool FPS_GT511C3::GetRawImage()
 #ifndef __GNUC__
 #pragma region -= Not imlemented commands =-
 #endif  //__GNUC__
-// Gets an image that is 258x202 (52116 bytes) and returns it in 407 Data_Packets
-// Use StartDataDownload, and then GetNextDataPacket until done
-// Returns: True (device confirming download starting)
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-//bool FPS_GT511C3::GetImage()
-//{
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-	//return false;
-//}
-
-// Gets a template from the fps (498 bytes) in 4 Data_Packets
-// Use StartDataDownload, and then GetNextDataPacket until done
-// Parameter: 0-199 ID number
-// Returns:
-//	0 - ACK Download starting
-//	1 - Invalid position
-//	2 - ID not used (no template to download
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-//int FPS_GT511C3::GetTemplate(int id)
-//{
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-	//return false;
-//}
-
-// Uploads a template to the fps
-// Parameter: the template (498 bytes)
-// Parameter: the ID number to upload
-// Parameter: Check for duplicate fingerprints already on fps
-// Returns:
-//	0-199 - ID duplicated
-//	200 - Uploaded ok (no duplicate if enabled)
-//	201 - Invalid position
-//	202 - Communications error
-//	203 - Device error
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-//int FPS_GT511C3::SetTemplate(byte* tmplt, int id, bool duplicateCheck)
-//{
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-	//return -1;
-//}
-
 // Commands that are not implemented (and why)
 // VerifyTemplate1_1 - Couldn't find a good reason to implement this on an arduino
 // IdentifyTemplate1_N - Couldn't find a good reason to implement this on an arduino
@@ -870,22 +896,22 @@ void FPS_GT511C3::Start()
         _serial.begin(BaudRates[i]);
         _serial.listen();
         SendCommand(packetbytes, 12);
-        delay(100);
 
-        uint8_t firstbyte = 0;
-        uint8_t secondbyte = 0;
+        uint8_t firstbyte, secondbyte = 0;
         bool done = false;
         uint8_t byteCount = 0;
         while (done == false && byteCount<100)
         {
             byteCount++;
+            delay(25);
             if(_serial.peek() == -1) break;
             firstbyte = (uint8_t)_serial.read();
-            if (firstbyte == Response_Packet::COMMAND_START_CODE_1)
+            if (firstbyte == Response_Packet::RESPONSE_START_CODE_1)
             {
+                delay(25);
                 if(_serial.peek() == -1) break;
                 secondbyte = (uint8_t)_serial.read();
-                if (secondbyte == Response_Packet::COMMAND_START_CODE_2)
+                if (secondbyte == Response_Packet::RESPONSE_START_CODE_2)
                 {
                     done = true;
                 }
@@ -896,7 +922,7 @@ void FPS_GT511C3::Start()
             while (_serial.available()) _serial.read(); // Clear Serial buffer
         } else
         {
-            uint8_t* resp = new uint8_t[12];
+            uint8_t resp[12];
             resp[0] = firstbyte;
             resp[1] = secondbyte;
             for (uint8_t i=2; i < 12; i++)
@@ -913,7 +939,6 @@ void FPS_GT511C3::Start()
                 Serial.println();
                 delete rp;
             }
-            delete resp;
             actualBaud = BaudRates[i];
             break;
         }
@@ -966,26 +991,34 @@ void FPS_GT511C3::SendCommand(uint8_t cmd[], uint16_t length)
 // Gets the response to the command from the software serial channel (and waits for it)
 Response_Packet* FPS_GT511C3::GetResponse()
 {
-	uint8_t firstbyte = 0;
+	uint8_t firstbyte, secondbyte = 0;
 	bool done = false;
 	_serial.listen();
 	while (done == false)
 	{
+	    while (_serial.available() == false) delay(10);
 		firstbyte = (uint8_t)_serial.read();
-		if (firstbyte == Response_Packet::COMMAND_START_CODE_1)
+		if (firstbyte == Response_Packet::RESPONSE_START_CODE_1)
 		{
-			done = true;
+		    while (_serial.available() == false) delay(10);
+		    secondbyte = (uint8_t)_serial.read();
+		    if (secondbyte == Response_Packet::RESPONSE_START_CODE_2)
+			{
+			    done = true;
+			}
 		}
 	}
-	uint8_t* resp = new uint8_t[12];
+
+	uint8_t resp[12];
 	resp[0] = firstbyte;
-	for (uint8_t i=1; i < 12; i++)
+	resp[1] = secondbyte;
+	for (uint8_t i=2; i < 12; i++)
 	{
 		while (_serial.available() == false) delay(10);
 		resp[i]= (uint8_t) _serial.read();
 	}
+
 	Response_Packet* rp = new Response_Packet(resp, UseSerialDebug);
-	delete resp;
 	if (UseSerialDebug)
 	{
 		Serial.print("FPS - RECV: ");
@@ -1000,15 +1033,16 @@ Response_Packet* FPS_GT511C3::GetResponse()
 // and sends it over serial sommunications
 void FPS_GT511C3::GetData(uint16_t length)
 {
-	uint8_t firstbyte = 0;
-	uint8_t secondbyte = 0;
+	uint8_t firstbyte, secondbyte = 0;
 	bool done = false;
 	_serial.listen();
 	while (done == false)
 	{
+	    while (_serial.available() == false) delay(10);
 		firstbyte = (uint8_t)_serial.read();
 		if (firstbyte == Data_Packet::DATA_START_CODE_1)
 		{
+		    while (_serial.available() == false) delay(10);
 		    secondbyte = (uint8_t)_serial.read();
 		    if (secondbyte == Data_Packet::DATA_START_CODE_2)
             {
@@ -1044,14 +1078,17 @@ void FPS_GT511C3::GetData(uint16_t length)
             while (_serial.available() == false) delay(1);
             if(_serial.overflow())
             {
-                Serial.println("Overflow! Data download stopped");
-                Serial.println("Cleaning serial buffer...");
+                if(UseSerialDebug)
+                {
+                    Serial.println("Overflow! Data download stopped");
+                    Serial.println("Cleaning serial buffer...");
+                }
                 for (uint16_t j = 0; j<length; j++)
                 {
                     _serial.read();
                     delay(1);
                 }
-                Serial.println("Done!");
+                if(UseSerialDebug) Serial.println("Done!");
                 return;
             }
             data[i]= (uint8_t) _serial.read();
