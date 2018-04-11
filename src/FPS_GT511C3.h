@@ -126,10 +126,10 @@ class Response_Packet
 		uint8_t ParameterBytes[4];
 		uint8_t ResponseBytes[2];
 		bool ACK;
-		static const uint8_t COMMAND_START_CODE_1 = 0x55;	// Static byte to mark the beginning of a command packet	-	never changes
-		static const uint8_t COMMAND_START_CODE_2 = 0xAA;	// Static byte to mark the beginning of a command packet	-	never changes
-		static const uint8_t COMMAND_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
-		static const uint8_t COMMAND_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)							-	theoretically never changes
+		static const uint8_t RESPONSE_START_CODE_1 = 0x55;	// Static byte to mark the beginning of a command packet	-	never changes
+		static const uint8_t RESPONSE_START_CODE_2 = 0xAA;	// Static byte to mark the beginning of a command packet	-	never changes
+		static const uint8_t RESPONSE_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
+		static const uint8_t RESPONSE_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)							-	theoretically never changes
 		uint32_t FromParameter();
 
 	private:
@@ -157,7 +157,7 @@ public:
     static const uint8_t DATA_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
     static const uint8_t DATA_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)
 
-    void GetData(uint8_t buffer[], uint16_t length);
+    void GetData(uint8_t buffer[], uint16_t length, bool UseSerialDebug);
 	void GetLastData(uint8_t buffer[], uint16_t length, bool UseSerialDebug);
 private:
 	bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname, bool UseSerialDebug);
@@ -300,13 +300,36 @@ class FPS_GT511C3
 	// Returns: True if ok, false if no finger pressed
 	bool CaptureFinger(bool highquality);
 
-    // Gets an image that is 258x202 (52116 bytes) and sends it over serial
+    // Gets an image that is 258x202 (52116 bytes + 2 bytes checksum) and sends it over serial
+    // WARNING: The documentation is totally wrong (at least in GT-511C3). Check implementation comments.
     // Returns: True (device confirming download)
-	bool GetImage();
+    // Parameter: true to ignore the documentation and get valid image data.
+	bool GetImage(bool patched = false);
 
-	// Gets an image that is qvga 160x120 (19200 bytes) and sends it over serial
+	// Gets an image that is qvga 160x120 (19200 bytes + 2 bytes checksum) and sends it over serial
     // Returns: True (device confirming download)
 	bool GetRawImage();
+
+    // Gets a template from the fps (498 bytes + 2 bytes checksum)
+	// Parameter: 0-199 ID number
+	// Returns:
+	//	0 - ACK Download starting
+	//	1 - Invalid position
+	//	2 - ID not used (no template to download
+	uint8_t GetTemplate(uint16_t id);
+
+	// Uploads a template to the fps
+	// Parameter: the template (498 bytes)
+	// Parameter: the ID number to upload
+	// Parameter: Check for duplicate fingerprints already on fps
+    // Returns:
+    // -1 - Undefined error (shouldn't ever happen)
+    //	0 - Uploaded ok (no duplicate if enabled)
+    //	1 - ID duplicated
+    //	2 - Invalid position
+    //	3 - Communications error
+    //	4 - Device error
+	uint16_t SetTemplate(byte* tmplt, uint16_t id, bool duplicateCheck);
 #ifndef __GNUC__
 	#pragma endregion
 #endif  //__GNUC__
@@ -314,31 +337,6 @@ class FPS_GT511C3
 #ifndef __GNUC__
 	#pragma region -= Not implemented commands =-
 #endif  //__GNUC__
-	// Gets a template from the fps (498 bytes) in 4 Data_Packets
-	// Use StartDataDownload, and then GetNextDataPacket until done
-	// Parameter: 0-199 ID number
-	// Returns:
-	//	0 - ACK Download starting
-	//	1 - Invalid position
-	//	2 - ID not used (no template to download
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-	//int GetTemplate(int id);
-
-	// Uploads a template to the fps
-	// Parameter: the template (498 bytes)
-	// Parameter: the ID number to upload
-	// Parameter: Check for duplicate fingerprints already on fps
-	// Returns:
-	//	0-199 - ID duplicated
-	//	200 - Uploaded ok (no duplicate if enabled)
-	//	201 - Invalid position
-	//	202 - Communications error
-	//	203 - Device error
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-	//int SetTemplate(byte* tmplt, int id, bool duplicateCheck);
-
 	// Commands that are not implemented (and why)
 	// VerifyTemplate1_1 - Couldn't find a good reason to implement this on an arduino
 	// IdentifyTemplate1_N - Couldn't find a good reason to implement this on an arduino
