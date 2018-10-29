@@ -11,6 +11,12 @@
 
 #include "Arduino.h"
 #include "SoftwareSerial.h"
+
+// Debug level:
+//  0: Disabled
+//  1: Enables verbose debug output using hardware Serial
+#define FPS_DEBUG 0
+
 #ifndef __GNUC__
 #pragma region -= Command_Packet =-
 #endif  //__GNUC__
@@ -120,7 +126,7 @@ class Response_Packet
 
 				static Errors_Enum ParseFromBytes(byte high, byte low);
 		};
-		Response_Packet(uint8_t* buffer, bool UseSerialDebug);
+		Response_Packet(uint8_t* buffer);
 		ErrorCodes::Errors_Enum Error;
 		uint8_t RawBytes[12];
 		uint8_t ParameterBytes[4];
@@ -133,7 +139,7 @@ class Response_Packet
 		uint32_t FromParameter();
 
 	private:
-		bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname, bool UseSerialDebug);
+		bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname);
 		uint16_t CalculateChecksum(uint8_t* buffer, uint16_t length);
 		uint8_t GetHighByte(uint16_t w);
 		uint8_t GetLowByte(uint16_t w);
@@ -150,17 +156,17 @@ class Response_Packet
 class Data_Packet
 {
 public:
-    Data_Packet(uint8_t* buffer, bool UseSerialDebug);
+    Data_Packet(uint8_t* buffer);
     uint16_t checksum = 0;
     static const uint8_t DATA_START_CODE_1 = 0x5A;	// Static byte to mark the beginning of a data packet	-	never changes
     static const uint8_t DATA_START_CODE_2 = 0xA5;	// Static byte to mark the beginning of a data packet	-	never changes
     static const uint8_t DATA_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
     static const uint8_t DATA_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)
 
-    void GetData(uint8_t buffer[], uint16_t length, bool UseSerialDebug);
-	void GetLastData(uint8_t buffer[], uint16_t length, bool UseSerialDebug);
+    void GetData(uint8_t buffer[]);
+	void GetLastData(uint8_t buffer[], uint16_t length);
 private:
-	bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname, bool UseSerialDebug);
+	bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname);
 	uint16_t CalculateChecksum(uint8_t* buffer, uint16_t length);
     uint8_t GetHighByte(uint16_t w);
     uint8_t GetLowByte(uint16_t w);
@@ -177,8 +183,6 @@ class FPS_GT511C3
 {
 
  public:
-	// Enables verbose debug output using hardware Serial
-	bool UseSerialDebug;
 	uint32_t desiredBaud;
 
 #ifndef __GNUC__

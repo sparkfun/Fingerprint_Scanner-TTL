@@ -90,21 +90,21 @@ Command_Packet::Command_Packet()
 #pragma region -= Response_Packet Definitions =-
 #endif  //__GNUC__
 // creates and parses a response packet from the finger print scanner
-Response_Packet::Response_Packet(uint8_t* buffer, bool UseSerialDebug)
+Response_Packet::Response_Packet(uint8_t* buffer)
 {
-	CheckParsing(buffer[0], RESPONSE_START_CODE_1, RESPONSE_START_CODE_1, "RESPONSE_START_CODE_1", UseSerialDebug);
-	CheckParsing(buffer[1], RESPONSE_START_CODE_2, RESPONSE_START_CODE_2, "RESPONSE_START_CODE_2", UseSerialDebug);
-	CheckParsing(buffer[2], RESPONSE_DEVICE_ID_1, RESPONSE_DEVICE_ID_1, "RESPONSE_DEVICE_ID_1", UseSerialDebug);
-	CheckParsing(buffer[3], RESPONSE_DEVICE_ID_2, RESPONSE_DEVICE_ID_2, "RESPONSE_DEVICE_ID_2", UseSerialDebug);
-	CheckParsing(buffer[8], 0x30, 0x31, "AckNak_LOW", UseSerialDebug);
+	CheckParsing(buffer[0], RESPONSE_START_CODE_1, RESPONSE_START_CODE_1, "RESPONSE_START_CODE_1");
+	CheckParsing(buffer[1], RESPONSE_START_CODE_2, RESPONSE_START_CODE_2, "RESPONSE_START_CODE_2");
+	CheckParsing(buffer[2], RESPONSE_DEVICE_ID_1, RESPONSE_DEVICE_ID_1, "RESPONSE_DEVICE_ID_1");
+	CheckParsing(buffer[3], RESPONSE_DEVICE_ID_2, RESPONSE_DEVICE_ID_2, "RESPONSE_DEVICE_ID_2");
+	CheckParsing(buffer[8], 0x30, 0x31, "AckNak_LOW");
 	if (buffer[8] == 0x30) ACK = true; else ACK = false;
-	CheckParsing(buffer[9], 0x00, 0x00, "AckNak_HIGH", UseSerialDebug);
+	CheckParsing(buffer[9], 0x00, 0x00, "AckNak_HIGH");
 
 	uint16_t checksum = CalculateChecksum(buffer, 10);
 	uint8_t checksum_low = GetLowByte(checksum);
 	uint8_t checksum_high = GetHighByte(checksum);
-	CheckParsing(buffer[10], checksum_low, checksum_low, "Checksum_LOW", UseSerialDebug);
-	CheckParsing(buffer[11], checksum_high, checksum_high, "Checksum_HIGH", UseSerialDebug);
+	CheckParsing(buffer[10], checksum_low, checksum_low, "Checksum_LOW");
+	CheckParsing(buffer[11], checksum_high, checksum_high, "Checksum_HIGH");
 
 	Error = ErrorCodes::ParseFromBytes(buffer[5], buffer[4]);
 
@@ -169,10 +169,11 @@ uint32_t Response_Packet::FromParameter()
 }
 
 // checks to see if the byte is the proper value, and logs it to the serial channel if not
-bool Response_Packet::CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname, bool UseSerialDebug)
+bool Response_Packet::CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname)
 {
 	bool retval = (b != propervalue) && (b != alternatevalue);
-	if ((UseSerialDebug) && (retval))
+#if FPS_DEBUG
+	if (retval)
 	{
 		Serial.print("Response_Packet parsing error ");
 		Serial.print(varname);
@@ -183,6 +184,7 @@ bool Response_Packet::CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alter
 		Serial.print(" != ");
 		Serial.println(b, HEX);
 	}
+#endif
   return retval;
 }
 
@@ -215,45 +217,47 @@ uint8_t Response_Packet::GetLowByte(uint16_t w)
 #ifndef __GNUC__
 #pragma region -= Data_Packet =-
 #endif  //__GNUC__
-Data_Packet::Data_Packet(uint8_t* buffer, bool UseSerialDebug)
+Data_Packet::Data_Packet(uint8_t* buffer)
 {
-    if (UseSerialDebug)
-    {
-        CheckParsing(buffer[0], DATA_START_CODE_1, DATA_START_CODE_1, "DATA_START_CODE_1", UseSerialDebug);
-        CheckParsing(buffer[1], DATA_START_CODE_2, DATA_START_CODE_2, "DATA_START_CODE_2", UseSerialDebug);
-        CheckParsing(buffer[2], DATA_DEVICE_ID_1, DATA_DEVICE_ID_1, "DATA_DEVICE_ID_1", UseSerialDebug);
-        CheckParsing(buffer[3], DATA_DEVICE_ID_2, DATA_DEVICE_ID_2, "DATA_DEVICE_ID_2", UseSerialDebug);
+#if FPS_DEBUG
+    CheckParsing(buffer[0], DATA_START_CODE_1, DATA_START_CODE_1, "DATA_START_CODE_1");
+    CheckParsing(buffer[1], DATA_START_CODE_2, DATA_START_CODE_2, "DATA_START_CODE_2");
+    CheckParsing(buffer[2], DATA_DEVICE_ID_1, DATA_DEVICE_ID_1, "DATA_DEVICE_ID_1");
+    CheckParsing(buffer[3], DATA_DEVICE_ID_2, DATA_DEVICE_ID_2, "DATA_DEVICE_ID_2");
 
-        this->checksum = CalculateChecksum(buffer, 4);
-    }
+    this->checksum = CalculateChecksum(buffer, 4);
+#endif
 }
 
 // Get a data packet (128 bytes), calculate checksum and send it to serial
-void Data_Packet::GetData(uint8_t buffer[], uint16_t length, bool UseSerialDebug)
+void Data_Packet::GetData(uint8_t buffer[])
 {
-    for(uint16_t i = 0; i<length; i++) Serial.write(buffer[i]);
-    if (UseSerialDebug) this->checksum = CalculateChecksum(buffer, 128);
+    for(uint16_t i = 0; i<128; i++) Serial.write(buffer[i]);
+#if FPS_DEBUG
+	this->checksum = CalculateChecksum(buffer, 128);
+#endif
 }
 
 // Get the last data packet (<=128 bytes), calculate checksum, validate checksum received and send it to serial
-void Data_Packet::GetLastData(uint8_t buffer[], uint16_t length, bool UseSerialDebug)
+void Data_Packet::GetLastData(uint8_t buffer[], uint16_t length)
 {
     for(uint16_t i = 0; i<length; i++) Serial.write(buffer[i]);
-    if (UseSerialDebug)
-    {
-        this->checksum = CalculateChecksum(buffer, length-2);
-        uint8_t checksum_low = GetLowByte(this->checksum);
-        uint8_t checksum_high = GetHighByte(this->checksum);
-        CheckParsing(buffer[length-2], checksum_low, checksum_low, "Checksum_LOW", UseSerialDebug);
-        CheckParsing(buffer[length-1], checksum_high, checksum_high, "Checksum_HIGH", UseSerialDebug);
-    }
+
+#if FPS_DEBUG
+    this->checksum = CalculateChecksum(buffer, length-2);
+    uint8_t checksum_low = GetLowByte(this->checksum);
+    uint8_t checksum_high = GetHighByte(this->checksum);
+    CheckParsing(buffer[length-2], checksum_low, checksum_low, "Checksum_LOW");
+    CheckParsing(buffer[length-1], checksum_high, checksum_high, "Checksum_HIGH");
+#endif
 }
 
 // checks to see if the byte is the proper value, and logs it to the serial channel if not
-bool Data_Packet::CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname, bool UseSerialDebug)
+bool Data_Packet::CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname)
 {
 	bool retval = (b != propervalue) && (b != alternatevalue);
-	if ((UseSerialDebug) && (retval))
+#if FPS_DEBUG
+	if(retval)
 	{
 		Serial.print("\nData_Packet parsing error ");
 		Serial.print(varname);
@@ -264,6 +268,7 @@ bool Data_Packet::CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternate
 		Serial.print(" != ");
 		Serial.println(b, HEX);
 	}
+#endif
   return retval;
 }
 
@@ -308,7 +313,6 @@ FPS_GT511C3::FPS_GT511C3(uint8_t rx, uint8_t tx, uint32_t baud)
 {
 	pin_RX = rx;
 	pin_TX = tx;
-	this->UseSerialDebug = false;
     this->Started = false;
     desiredBaud = baud;
 };
@@ -330,7 +334,9 @@ FPS_GT511C3::~FPS_GT511C3()
 bool FPS_GT511C3::Open()
 {
     if (!Started) Start();
-	if (UseSerialDebug) Serial.println("FPS - Open");
+#if FPS_DEBUG
+	Serial.println("FPS - Open");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Open;
 	cp->Parameter[0] = 0x00;
@@ -352,7 +358,9 @@ bool FPS_GT511C3::Open()
 // Implemented it for completeness.
 void FPS_GT511C3::Close()
 {
-	if (UseSerialDebug) Serial.println("FPS - Close");
+#if FPS_DEBUG
+	Serial.println("FPS - Close");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Close;
 	cp->Parameter[0] = 0x00;
@@ -376,12 +384,16 @@ bool FPS_GT511C3::SetLED(bool on)
 	cp->Command = Command_Packet::Commands::CmosLed;
 	if (on)
 	{
-		if (UseSerialDebug) Serial.println("FPS - LED on");
+#if FPS_DEBUG
+		Serial.println("FPS - LED on");
+#endif
 		cp->Parameter[0] = 0x01;
 	}
 	else
 	{
-		if (UseSerialDebug) Serial.println("FPS - LED off");
+#if FPS_DEBUG
+		Serial.println("FPS - LED off");
+#endif
 		cp->Parameter[0] = 0x00;
 	}
 	cp->Parameter[1] = 0x00;
@@ -406,7 +418,9 @@ bool FPS_GT511C3::ChangeBaudRate(uint32_t baud)
 {
     if ((baud == 9600) || (baud == 19200) || (baud == 38400) || (baud == 57600) || (baud == 115200))
 	{
-        if (UseSerialDebug) Serial.println("FPS - ChangeBaudRate");
+#if FPS_DEBUG
+        Serial.println("FPS - ChangeBaudRate");
+#endif
 		Command_Packet* cp = new Command_Packet();
 		cp->Command = Command_Packet::Commands::ChangeBaudRate;
 		cp->ParameterFrom(baud);
@@ -427,7 +441,9 @@ bool FPS_GT511C3::ChangeBaudRate(uint32_t baud)
 // Return: The total number of enrolled fingerprints
 uint16_t FPS_GT511C3::GetEnrollCount()
 {
-	if (UseSerialDebug) Serial.println("FPS - GetEnrolledCount");
+#if FPS_DEBUG
+	Serial.println("FPS - GetEnrolledCount");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::GetEnrollCount;
 	cp->Parameter[0] = 0x00;
@@ -450,7 +466,9 @@ uint16_t FPS_GT511C3::GetEnrollCount()
 // Return: True if the ID number is enrolled, false if not
 bool FPS_GT511C3::CheckEnrolled(uint16_t id)
 {
-	if (UseSerialDebug) Serial.println("FPS - CheckEnrolled");
+#if FPS_DEBUG
+	Serial.println("FPS - CheckEnrolled");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::CheckEnrolled;
 	cp->ParameterFrom(id);
@@ -475,7 +493,9 @@ bool FPS_GT511C3::CheckEnrolled(uint16_t id)
 //	3 - Position(ID) is already used
 uint8_t FPS_GT511C3::EnrollStart(uint16_t id)
 {
-	if (UseSerialDebug) Serial.println("FPS - EnrollStart");
+#if FPS_DEBUG
+	Serial.println("FPS - EnrollStart");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::EnrollStart;
 	cp->ParameterFrom(id);
@@ -503,7 +523,9 @@ uint8_t FPS_GT511C3::EnrollStart(uint16_t id)
 //	3 - ID in use
 uint8_t FPS_GT511C3::Enroll1()
 {
-	if (UseSerialDebug) Serial.println("FPS - Enroll1");
+#if FPS_DEBUG
+	Serial.println("FPS - Enroll1");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Enroll1;
 	uint8_t* packetbytes = cp->GetPacketBytes();
@@ -532,7 +554,9 @@ uint8_t FPS_GT511C3::Enroll1()
 //	3 - ID in use
 uint8_t FPS_GT511C3::Enroll2()
 {
-	if (UseSerialDebug) Serial.println("FPS - Enroll2");
+#if FPS_DEBUG
+	Serial.println("FPS - Enroll2");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Enroll2;
 	byte* packetbytes = cp->GetPacketBytes();
@@ -562,7 +586,9 @@ uint8_t FPS_GT511C3::Enroll2()
 //	3 - ID in use
 uint8_t FPS_GT511C3::Enroll3()
 {
-	if (UseSerialDebug) Serial.println("FPS - Enroll3");
+#if FPS_DEBUG
+	Serial.println("FPS - Enroll3");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Enroll3;
 	byte* packetbytes = cp->GetPacketBytes();
@@ -587,7 +613,9 @@ uint8_t FPS_GT511C3::Enroll3()
 // Return: true if finger pressed, false if not
 bool FPS_GT511C3::IsPressFinger()
 {
-	if (UseSerialDebug) Serial.println("FPS - IsPressFinger");
+#if FPS_DEBUG
+	Serial.println("FPS - IsPressFinger");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::IsPressFinger;
 	uint8_t* packetbytes = cp->GetPacketBytes();
@@ -607,7 +635,9 @@ bool FPS_GT511C3::IsPressFinger()
 // Returns: true if successful, false if position invalid
 bool FPS_GT511C3::DeleteID(uint16_t id)
 {
-	if (UseSerialDebug) Serial.println("FPS - DeleteID");
+#if FPS_DEBUG
+	Serial.println("FPS - DeleteID");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::DeleteID;
 	cp->ParameterFrom(id);
@@ -625,7 +655,9 @@ bool FPS_GT511C3::DeleteID(uint16_t id)
 // Returns: true if successful, false if db is empty
 bool FPS_GT511C3::DeleteAll()
 {
-	if (UseSerialDebug) Serial.println("FPS - DeleteAll");
+#if FPS_DEBUG
+	Serial.println("FPS - DeleteAll");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::DeleteAll;
 	uint8_t* packetbytes = cp->GetPacketBytes();
@@ -648,7 +680,9 @@ bool FPS_GT511C3::DeleteAll()
 //	3 - Verified FALSE (not the correct finger)
 uint8_t FPS_GT511C3::Verify1_1(uint16_t id)
 {
-	if (UseSerialDebug) Serial.println("FPS - Verify1_1");
+#if FPS_DEBUG
+	Serial.println("FPS - Verify1_1");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Verify1_1;
 	cp->ParameterFrom(id);
@@ -679,7 +713,9 @@ uint8_t FPS_GT511C3::Verify1_1(uint16_t id)
 //           200, if using GT-521F32/GT-511C3
 uint16_t FPS_GT511C3::Identify1_N()
 {
-	if (UseSerialDebug) Serial.println("FPS - Identify1_N");
+#if FPS_DEBUG
+	Serial.println("FPS - Identify1_N");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Identify1_N;
 	uint8_t* packetbytes = cp->GetPacketBytes();
@@ -701,7 +737,9 @@ uint16_t FPS_GT511C3::Identify1_N()
 // Returns: True if ok, false if no finger pressed
 bool FPS_GT511C3::CaptureFinger(bool highquality)
 {
-	if (UseSerialDebug) Serial.println("FPS - CaptureFinger");
+#if FPS_DEBUG
+	Serial.println("FPS - CaptureFinger");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::CaptureFinger;
 	if (highquality)
@@ -733,7 +771,9 @@ bool FPS_GT511C3::CaptureFinger(bool highquality)
 // Parameter: true to ignore the documentation and get valid image data.
 bool FPS_GT511C3::GetImage(bool patched)
 {
-    if (UseSerialDebug) Serial.println("FPS - GetImage");
+#if FPS_DEBUG
+	Serial.println("FPS - GetImage");
+#endif
     Command_Packet* cp = new Command_Packet();
     cp->Command = Command_Packet::Commands::GetImage;
     uint8_t* packetbytes = cp->GetPacketBytes();
@@ -775,7 +815,9 @@ bool FPS_GT511C3::GetImage(bool patched)
     // Also, avoid using UseSerialDebug for this task, since it's easier to overflow.
 bool FPS_GT511C3::GetRawImage()
 {
-    if (UseSerialDebug) Serial.println("FPS - GetRawImage");
+#if FPS_DEBUG
+	Serial.println("FPS - GetRawImage");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::GetRawImage;
 	uint8_t* packetbytes = cp->GetPacketBytes();
@@ -797,7 +839,9 @@ bool FPS_GT511C3::GetRawImage()
 //	2 - ID not used (no template to download
 uint8_t FPS_GT511C3::GetTemplate(uint16_t id)
 {
-    if (UseSerialDebug) Serial.println("FPS - GetTemplate");
+#if FPS_DEBUG
+	Serial.println("FPS - GetTemplate");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::GetTemplate;
 	cp->ParameterFrom(id);
@@ -832,7 +876,9 @@ uint8_t FPS_GT511C3::GetTemplate(uint16_t id)
 //	4 - Device error
 uint16_t FPS_GT511C3::SetTemplate(byte* tmplt, uint16_t id, bool duplicateCheck)
 {
-    if (UseSerialDebug) Serial.println("FPS - SetTemplate");
+#if FPS_DEBUG
+	Serial.println("FPS - SetTemplate");
+#endif
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::SetTemplate;
 	cp->ParameterFrom(0xFFFF0000 * !duplicateCheck + id); // Will set the HIWORD if duplicateCheck = false
@@ -914,12 +960,12 @@ void FPS_GT511C3::Start()
 	uint32_t BaudRates[5] = {9600, 19200, 38400, 57600, 115200};
 	for(uint8_t i = 0; i<5; i++) // Trying to find FPS baud rate
     {
-        if(UseSerialDebug)
-        {
-            Serial.print("Establishing connection with FPS at baud rate: ");
-            Serial.print(BaudRates[i]);
-            Serial.println();
-        }
+#if FPS_DEBUG
+        Serial.print("Establishing connection with FPS at baud rate: ");
+        Serial.print(BaudRates[i]);
+        Serial.println();
+#endif
+
         _serial.begin(BaudRates[i]);
         _serial.listen();
         SendCommand(packetbytes, 12);
@@ -957,47 +1003,43 @@ void FPS_GT511C3::Start()
                 while (_serial.available() == false) delay(10);
                 resp[i]= (uint8_t) _serial.read();
             }
-            if (UseSerialDebug)
-            {
-                Response_Packet* rp = new Response_Packet(resp, UseSerialDebug);
-                Serial.print("FPS - RECV: ");
-                SendToSerial(rp->RawBytes, 12);
-                Serial.println();
-                Serial.println();
-                delete rp;
-            }
+#if FPS_DEBUG
+			Response_Packet* rp = new Response_Packet(resp);
+			Serial.print("FPS - RECV: ");
+			SendToSerial(rp->RawBytes, 12);
+			Serial.println();
+			Serial.println();
+			delete rp;
+#endif
             actualBaud = BaudRates[i];
             break;
         }
     }
 
-    if(UseSerialDebug)
-    {
-        Serial.print("Connection established succesfully. FPS baud rate was: ");
-        Serial.print(actualBaud);
-        Serial.println();
-        Serial.println();
-    }
+#if FPS_DEBUG
+	Serial.print("Connection established succesfully. FPS baud rate was: ");
+	Serial.print(actualBaud);
+	Serial.println();
+	Serial.println();
+#endif
 
     if (actualBaud == 0) while(true)
     {
-        if(UseSerialDebug)
-        {
-            Serial.print("EXCEPTION: FPS didn't answer to communications. Code execution stopped.");
-            Serial.println();
-        }
+#if FPS_DEBUG
+		Serial.print("EXCEPTION: FPS didn't answer to communications. Code execution stopped.");
+		Serial.println();
+#endif
         delay(1000); // Something went terribly wrong with the FPS, and you aren't allowed to leave
     }
 
     if (actualBaud != baud)
     {
-        if(UseSerialDebug)
-        {
-            Serial.print("Undesired baud rate. Changing baud rate to: ");
-            Serial.print(baud);
-            Serial.println();
-            Serial.println();
-        }
+#if FPS_DEBUG
+		Serial.print("Undesired baud rate. Changing baud rate to: ");
+		Serial.print(baud);
+		Serial.println();
+		Serial.println();
+#endif
         ChangeBaudRate(baud);
     }
     Started = true;
@@ -1007,12 +1049,11 @@ void FPS_GT511C3::Start()
 void FPS_GT511C3::SendCommand(uint8_t cmd[], uint16_t length)
 {
 	_serial.write(cmd, length);
-	if (UseSerialDebug)
-	{
-		Serial.print("FPS - SEND: ");
-		SendToSerial(cmd, length);
-		Serial.println();
-	}
+#if FPS_DEBUG
+	Serial.print("FPS - SEND: ");
+	SendToSerial(cmd, length);
+	Serial.println();
+#endif
 };
 
 // Gets the response to the command from the software serial channel (and waits for it)
@@ -1045,14 +1086,13 @@ Response_Packet* FPS_GT511C3::GetResponse()
 		resp[i]= (uint8_t) _serial.read();
 	}
 
-	Response_Packet* rp = new Response_Packet(resp, UseSerialDebug);
-	if (UseSerialDebug)
-	{
-		Serial.print("FPS - RECV: ");
-		SendToSerial(rp->RawBytes, 12);
-		Serial.println();
-		Serial.println();
-	}
+	Response_Packet* rp = new Response_Packet(resp);
+#if FPS_DEBUG
+	Serial.print("FPS - RECV: ");
+	SendToSerial(rp->RawBytes, 12);
+	Serial.println();
+	Serial.println();
+#endif
 	return rp;
 };
 
@@ -1086,7 +1126,7 @@ void FPS_GT511C3::GetData(uint16_t length)
 		while (_serial.available() == false) delay(10);
 		firstdata[i]= (uint8_t) _serial.read();
 	}
-	Data_Packet dp(firstdata, UseSerialDebug);
+	Data_Packet dp(firstdata);
 
 	uint16_t numberPacketsNeeded = (length-4) / 128;
 	bool smallLastPacket = false;
@@ -1105,22 +1145,23 @@ void FPS_GT511C3::GetData(uint16_t length)
             while (_serial.available() == false) delay(1);
             if(_serial.overflow())
             {
-                if(UseSerialDebug)
-                {
-                    Serial.println("Overflow! Data download stopped");
-                    Serial.println("Cleaning serial buffer...");
-                }
+#if FPS_DEBUG
+				Serial.println("Overflow! Data download stopped");
+				Serial.println("Cleaning serial buffer...");
+#endif
                 for (uint16_t j = 0; j<length; j++)
                 {
                     _serial.read();
                     delay(1);
                 }
-                if(UseSerialDebug) Serial.println("Done!");
-                return;
+#if FPS_DEBUG
+				Serial.println("Done!");
+#endif
+				return;
             }
             data[i]= (uint8_t) _serial.read();
         }
-        dp.GetData(data, 128, UseSerialDebug);
+        dp.GetData(data);
 	}
 
 	uint8_t lastdata[lastPacketSize];
@@ -1129,7 +1170,7 @@ void FPS_GT511C3::GetData(uint16_t length)
 		while (_serial.available() == false) delay(10);
 		lastdata[i]= (uint8_t) _serial.read();
 	}
-	dp.GetLastData(lastdata, lastPacketSize, UseSerialDebug);
+	dp.GetLastData(lastdata, lastPacketSize);
 };
 
 // sends the byte array to the serial debugger in our hex format EX: "00 AF FF 10 00 13"
