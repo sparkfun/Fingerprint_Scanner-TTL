@@ -139,7 +139,7 @@ class Response_Packet
 		uint32_t FromParameter();
 
 	private:
-		bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname);
+		bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const String varname);
 		uint16_t CalculateChecksum(uint8_t* buffer, uint16_t length);
 		uint8_t GetHighByte(uint16_t w);
 		uint8_t GetLowByte(uint16_t w);
@@ -166,7 +166,7 @@ public:
     void GetData(uint8_t buffer[], uint16_t length);
 	void GetLastData(uint8_t buffer[], uint16_t length);
 private:
-	bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname);
+	bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const String varname);
 	uint16_t CalculateChecksum(uint8_t* buffer, uint16_t length);
     uint8_t GetHighByte(uint16_t w);
     uint8_t GetLowByte(uint16_t w);
