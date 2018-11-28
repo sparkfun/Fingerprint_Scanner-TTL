@@ -1162,12 +1162,12 @@ void FPS_GT511C3::GetData(uint16_t length)
 	Data_Packet dp(firstdata);
 
 	uint16_t numberPacketsNeeded = (length-4) / 64;
-	bool smallLastPacket = false;
 	uint8_t lastPacketSize = (length-4) % 64;
-	if(lastPacketSize != 0)
-	{
-		numberPacketsNeeded++;
-		smallLastPacket = true;
+	if(lastPacketSize != 0) numberPacketsNeeded++;
+	else {
+		// Last packet requires special treatment, so you don't want it to pass over the main loop
+		numberPacketsNeeded--;
+		lastPacketSize = 64;
 	}
 
     uint8_t data[64];
@@ -1237,16 +1237,7 @@ bool FPS_GT511C3::ReturnData(uint16_t length, uint8_t data[])
 		while (_serial.available() == false) delay(10);
 		firstdata[i]= (uint8_t) _serial.read();
 	}
-	Data_Packet dp(firstdata);
-
-	uint16_t numberPacketsNeeded = (length-4) / 64;
-	bool smallLastPacket = false;
-	uint8_t lastPacketSize = (length-4) % 64;
-	if(lastPacketSize != 0)
-	{
-		numberPacketsNeeded++;
-		smallLastPacket = true;
-	}
+	Data_Packet dp(firstdata); // Not needed
 
 	for (uint16_t i=0; i < length-4; i++)
         {
