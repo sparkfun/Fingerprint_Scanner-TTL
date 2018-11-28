@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/Fasgort/Fingerprint_Scanner-TTL.git"
   },
-  "version": "1.2.0",
+  "version": "1.2.2",
   "frameworks": "arduino",
   "platforms": "atmelavr"
 }
