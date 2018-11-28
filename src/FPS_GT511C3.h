@@ -163,7 +163,7 @@ public:
     static const uint8_t DATA_DEVICE_ID_1 = 0x01;	// Device ID Byte 1 (lesser byte)							-	theoretically never changes
     static const uint8_t DATA_DEVICE_ID_2 = 0x00;	// Device ID Byte 2 (greater byte)
 
-    void GetData(uint8_t buffer[]);
+    void GetData(uint8_t buffer[], uint16_t length);
 	void GetLastData(uint8_t buffer[], uint16_t length);
 private:
 	bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const char* varname);

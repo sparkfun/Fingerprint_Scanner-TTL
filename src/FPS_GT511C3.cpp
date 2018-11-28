@@ -229,16 +229,16 @@ Data_Packet::Data_Packet(uint8_t* buffer)
 #endif
 }
 
-// Get a data packet (128 bytes), calculate checksum and send it to serial
-void Data_Packet::GetData(uint8_t buffer[])
+// Get a data packet, calculate checksum and send it to serial
+void Data_Packet::GetData(uint8_t buffer[], uint16_t length)
 {
-    for(uint16_t i = 0; i<128; i++) Serial.write(buffer[i]);
+    for(uint16_t i = 0; i<length; i++) Serial.write(buffer[i]);
 #if FPS_DEBUG
-	this->checksum = CalculateChecksum(buffer, 128);
+	this->checksum = CalculateChecksum(buffer, length);
 #endif
 }
 
-// Get the last data packet (<=128 bytes), calculate checksum, validate checksum received and send it to serial
+// Get the last data packet, calculate checksum, validate checksum received and send it to serial
 void Data_Packet::GetLastData(uint8_t buffer[], uint16_t length)
 {
     for(uint16_t i = 0; i<length; i++) Serial.write(buffer[i]);
@@ -1128,19 +1128,19 @@ void FPS_GT511C3::GetData(uint16_t length)
 	}
 	Data_Packet dp(firstdata);
 
-	uint16_t numberPacketsNeeded = (length-4) / 128;
+	uint16_t numberPacketsNeeded = (length-4) / 64;
 	bool smallLastPacket = false;
-	uint8_t lastPacketSize = (length-4) % 128;
+	uint8_t lastPacketSize = (length-4) % 64;
 	if(lastPacketSize != 0)
 	{
-            numberPacketsNeeded++;
-            smallLastPacket = true;
+		numberPacketsNeeded++;
+		smallLastPacket = true;
 	}
 
-    uint8_t data[128];
+    uint8_t data[64];
 	for (uint16_t packetCount=1; packetCount < numberPacketsNeeded; packetCount++)
     {
-        for (uint8_t i=0; i < 128; i++)
+        for (uint8_t i=0; i < 64; i++)
         {
             while (_serial.available() == false) delay(1);
             if(_serial.overflow())
@@ -1161,7 +1161,7 @@ void FPS_GT511C3::GetData(uint16_t length)
             }
             data[i]= (uint8_t) _serial.read();
         }
-        dp.GetData(data);
+        dp.GetData(data, 64);
 	}
 
 	uint8_t lastdata[lastPacketSize];
