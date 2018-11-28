@@ -863,6 +863,39 @@ uint8_t FPS_GT511C3::GetTemplate(uint16_t id)
 	}
 }
 
+// Gets a template from the fps (498 bytes + 2 bytes checksum) and store it in an array
+// Parameter: 0-199 ID number, array pointer to store the data
+// Returns:
+//	0 - ACK Download starting
+//	1 - Invalid position
+//	2 - ID not used (no template to download
+//	3 - Data download failed (Serial overflow)
+uint8_t FPS_GT511C3::GetTemplate(uint16_t id, uint8_t data[])
+{
+#if FPS_DEBUG
+	Serial.println("FPS - GetTemplate");
+#endif
+	Command_Packet* cp = new Command_Packet();
+	cp->Command = Command_Packet::Commands::GetTemplate;
+	cp->ParameterFrom(id);
+	uint8_t* packetbytes = cp->GetPacketBytes();
+	delete cp;
+	SendCommand(packetbytes, 12);
+    delete packetbytes;
+	Response_Packet* rp = GetResponse();
+	if(rp->ACK)
+	{
+        delete rp;
+        if (ReturnData(498+6, data)) return 0;
+		else return 3;
+	} else
+	{
+	    uint32_t retval = rp->FromParameter();
+	    delete rp;
+	    return retval;
+	}
+}
+
 // Uploads a template to the fps
 // Parameter: the template (498 bytes)
 // Parameter: the ID number to upload
@@ -1171,6 +1204,72 @@ void FPS_GT511C3::GetData(uint16_t length)
 		lastdata[i]= (uint8_t) _serial.read();
 	}
 	dp.GetLastData(lastdata, lastPacketSize);
+};
+
+// Gets the data (length bytes) from the software serial channel (and waits for it)
+// and store it in an array
+// Return: True if the data was succesfully downloaded
+bool FPS_GT511C3::ReturnData(uint16_t length, uint8_t data[])
+{
+	uint8_t firstbyte, secondbyte = 0;
+	bool done = false;
+	_serial.listen();
+	while (done == false)
+	{
+	    while (_serial.available() == false) delay(10);
+		firstbyte = (uint8_t)_serial.read();
+		if (firstbyte == Data_Packet::DATA_START_CODE_1)
+		{
+		    while (_serial.available() == false) delay(10);
+		    secondbyte = (uint8_t)_serial.read();
+		    if (secondbyte == Data_Packet::DATA_START_CODE_2)
+            {
+                done = true;
+            }
+		}
+	}
+
+    uint8_t firstdata[4];
+	firstdata[0] = firstbyte;
+	firstdata[1] = secondbyte;
+	for (uint8_t i=2; i < 4; i++)
+	{
+		while (_serial.available() == false) delay(10);
+		firstdata[i]= (uint8_t) _serial.read();
+	}
+	Data_Packet dp(firstdata);
+
+	uint16_t numberPacketsNeeded = (length-4) / 64;
+	bool smallLastPacket = false;
+	uint8_t lastPacketSize = (length-4) % 64;
+	if(lastPacketSize != 0)
+	{
+		numberPacketsNeeded++;
+		smallLastPacket = true;
+	}
+
+	for (uint16_t i=0; i < length-4; i++)
+        {
+            while (_serial.available() == false) delay(1);
+            if(_serial.overflow())
+            {
+#if FPS_DEBUG
+				Serial.println("Overflow! Data download stopped");
+				Serial.println("Cleaning serial buffer...");
+#endif
+                for (uint16_t j = 0; j<length; j++)
+                {
+                    _serial.read();
+                    delay(1);
+                }
+#if FPS_DEBUG
+				Serial.println("Done!");
+#endif
+				return false;
+            }
+            data[i]= (uint8_t) _serial.read();
+        }
+	return true;
 };
 
 // sends the byte array to the serial debugger in our hex format EX: "00 AF FF 10 00 13"

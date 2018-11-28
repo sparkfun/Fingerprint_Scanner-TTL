@@ -321,6 +321,14 @@ class FPS_GT511C3
 	//	1 - Invalid position
 	//	2 - ID not used (no template to download
 	uint8_t GetTemplate(uint16_t id);
+	
+	// Gets a template from the fps (498 bytes + 2 bytes checksum) and store it in an array
+	// Parameter: 0-199 ID number, array pointer to store the data
+	// Returns:
+	//	0 - ACK Download starting
+	//	1 - Invalid position
+	//	2 - ID not used (no template to download
+	uint8_t GetTemplate(uint16_t id, uint8_t data[]);
 
 	// Uploads a template to the fps
 	// Parameter: the template (498 bytes)
@@ -374,6 +382,7 @@ private:
     void SendCommand(uint8_t cmd[], uint16_t length);
     Response_Packet* GetResponse();
     void GetData(uint16_t length);
+	bool ReturnData(uint16_t length, uint8_t data[]);
     uint8_t pin_RX,pin_TX;
     SoftwareSerial _serial;
 };
