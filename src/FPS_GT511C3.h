@@ -126,7 +126,7 @@ class Response_Packet
 
 				static Errors_Enum ParseFromBytes(byte high, byte low);
 		};
-		Response_Packet(uint8_t* buffer);
+		Response_Packet(uint8_t buffer[]);
 		ErrorCodes::Errors_Enum Error;
 		uint8_t RawBytes[12];
 		uint8_t ParameterBytes[4];
@@ -140,7 +140,7 @@ class Response_Packet
 
 	private:
 		bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const String varname);
-		uint16_t CalculateChecksum(uint8_t* buffer, uint16_t length);
+		uint16_t CalculateChecksum(uint8_t buffer[], uint16_t length);
 		uint8_t GetHighByte(uint16_t w);
 		uint8_t GetLowByte(uint16_t w);
 };
@@ -156,7 +156,8 @@ class Response_Packet
 class Data_Packet
 {
 public:
-    Data_Packet(uint8_t* buffer);
+	Data_Packet(uint8_t buffer[], uint16_t length, SoftwareSerial _serial);
+    Data_Packet(uint8_t buffer[]);
     uint16_t checksum = 0;
     static const uint8_t DATA_START_CODE_1 = 0x5A;	// Static byte to mark the beginning of a data packet	-	never changes
     static const uint8_t DATA_START_CODE_2 = 0xA5;	// Static byte to mark the beginning of a data packet	-	never changes
@@ -167,7 +168,7 @@ public:
 	void GetLastData(uint8_t buffer[], uint16_t length);
 private:
 	bool CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternatevalue, const String varname);
-	uint16_t CalculateChecksum(uint8_t* buffer, uint16_t length);
+	uint16_t CalculateChecksum(uint8_t buffer[], uint16_t length);
     uint8_t GetHighByte(uint16_t w);
     uint8_t GetLowByte(uint16_t w);
 };
@@ -341,7 +342,7 @@ class FPS_GT511C3
     //	2 - Invalid position
     //	3 - Communications error
     //	4 - Device error
-	uint16_t SetTemplate(byte* tmplt, uint16_t id, bool duplicateCheck);
+	uint16_t SetTemplate(uint8_t tmplt[], uint16_t id, bool duplicateCheck);
 #ifndef __GNUC__
 	#pragma endregion
 #endif  //__GNUC__
