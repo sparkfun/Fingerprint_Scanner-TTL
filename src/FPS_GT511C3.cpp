@@ -90,7 +90,7 @@ Command_Packet::Command_Packet()
 #pragma region -= Response_Packet Definitions =-
 #endif  //__GNUC__
 // creates and parses a response packet from the finger print scanner
-Response_Packet::Response_Packet(uint8_t* buffer)
+Response_Packet::Response_Packet(uint8_t buffer[])
 {
 	CheckParsing(buffer[0], RESPONSE_START_CODE_1, RESPONSE_START_CODE_1, F("RESPONSE_START_CODE_1"));
 	CheckParsing(buffer[1], RESPONSE_START_CODE_2, RESPONSE_START_CODE_2, F("RESPONSE_START_CODE_2"));
@@ -189,7 +189,7 @@ bool Response_Packet::CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alter
 }
 
 // calculates the checksum from the bytes in the packet
-uint16_t Response_Packet::CalculateChecksum(uint8_t* buffer, uint16_t length)
+uint16_t Response_Packet::CalculateChecksum(uint8_t buffer[], uint16_t length)
 {
 	uint16_t checksum = 0;
 	for (uint16_t i=0; i<length; i++)
@@ -217,7 +217,68 @@ uint8_t Response_Packet::GetLowByte(uint16_t w)
 #ifndef __GNUC__
 #pragma region -= Data_Packet =-
 #endif  //__GNUC__
-Data_Packet::Data_Packet(uint8_t* buffer)
+// creates a data packet and send it to the finger print scanner
+Data_Packet::Data_Packet(uint8_t buffer[], uint16_t length, SoftwareSerial _serial)
+{
+	
+	uint8_t* data_code= new uint8_t[4];
+
+	data_code[0] = DATA_START_CODE_1;
+	data_code[1] = DATA_START_CODE_2;
+	data_code[2] = DATA_DEVICE_ID_1;
+	data_code[3] = DATA_DEVICE_ID_2;	
+	
+#if FPS_DEBUG
+	Serial.println(F("FPS - Template"));
+	Serial.print(F("FPS - SEND: "));
+	Serial.print("\"");
+	bool first=true;
+	for(uint16_t i=0; i<4; i++)
+	{
+		if (first) first=false; else Serial.print(" ");
+		char tmp[16];
+		sprintf(tmp, "%.2X", data_code[i]);
+		Serial.print(tmp);
+	}
+	for(uint16_t i=0; i<length; i++)
+	{
+		if (first) first=false; else Serial.print(" ");
+		char tmp[16];
+		sprintf(tmp, "%.2X", buffer[i]);
+		Serial.print(tmp);
+	}
+	{
+		if (first) first=false; else Serial.print(" ");
+		char tmp[16];
+		sprintf(tmp, "%.2X", GetLowByte(this->checksum));
+		Serial.print(tmp);
+	}
+	{
+		if (first) first=false; else Serial.print(" ");
+		char tmp[16];
+		sprintf(tmp, "%.2X", GetHighByte(this->checksum));
+		Serial.print(tmp);
+	}
+	Serial.print("\"");
+	Serial.println();
+#endif
+
+	// Calculate checksum
+	this->checksum = CalculateChecksum(data_code, 4);
+	this->checksum = CalculateChecksum(buffer, length);
+	
+	// Send everything to the finger print scanner
+	_serial.write(data_code, 4);
+	_serial.write(buffer, length);
+	_serial.write(GetLowByte(this->checksum));
+	_serial.write(GetHighByte(this->checksum));
+	
+	// clean up
+	delete data_code;
+	
+}
+// creates and parses a data packet from the finger print scanner
+Data_Packet::Data_Packet(uint8_t buffer[])
 {
 #if FPS_DEBUG
     CheckParsing(buffer[0], DATA_START_CODE_1, DATA_START_CODE_1, F("DATA_START_CODE_1"));
@@ -273,7 +334,7 @@ bool Data_Packet::CheckParsing(uint8_t b, uint8_t propervalue, uint8_t alternate
 }
 
 // calculates the checksum from the bytes in the packet
-uint16_t Data_Packet::CalculateChecksum(uint8_t* buffer, uint16_t length)
+uint16_t Data_Packet::CalculateChecksum(uint8_t buffer[], uint16_t length)
 {
 	uint16_t checksum = this->checksum;
 	for (uint16_t i=0; i<length; i++)
@@ -907,7 +968,7 @@ uint8_t FPS_GT511C3::GetTemplate(uint16_t id, uint8_t data[])
 //	2 - Invalid position
 //	3 - Communications error
 //	4 - Device error
-uint16_t FPS_GT511C3::SetTemplate(byte* tmplt, uint16_t id, bool duplicateCheck)
+uint16_t FPS_GT511C3::SetTemplate(uint8_t tmplt[], uint16_t id, bool duplicateCheck)
 {
 #if FPS_DEBUG
 	Serial.println(F("FPS - SetTemplate"));
@@ -926,7 +987,7 @@ uint16_t FPS_GT511C3::SetTemplate(byte* tmplt, uint16_t id, bool duplicateCheck)
         return 2;
 	} else
 	{
-	    SendCommand(tmplt, 498); // Not actually a command ;)
+		Data_Packet dp(tmplt, 498, _serial); // This makes the data packet and sends it immediately
 	    rp = GetResponse();
 	    if (rp->ACK)
         {
@@ -954,7 +1015,7 @@ uint16_t FPS_GT511C3::SetTemplate(byte* tmplt, uint16_t id, bool duplicateCheck)
 #endif  //__GNUC__
 
 #ifndef __GNUC__
-#pragma region -= Not imlemented commands =-
+#pragma region -= Not implemented commands =-
 #endif  //__GNUC__
 // Commands that are not implemented (and why)
 // VerifyTemplate1_1 - Couldn't find a good reason to implement this on an arduino
@@ -1266,7 +1327,7 @@ bool FPS_GT511C3::ReturnData(uint16_t length, uint8_t data[])
 // sends the byte array to the serial debugger in our hex format EX: "00 AF FF 10 00 13"
 void FPS_GT511C3::SendToSerial(uint8_t data[], uint16_t length)
 {
-  boolean first=true;
+  bool first=true;
   Serial.print("\"");
   for(uint16_t i=0; i<length; i++)
   {
