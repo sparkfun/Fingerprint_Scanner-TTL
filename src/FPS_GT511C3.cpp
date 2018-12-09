@@ -962,12 +962,12 @@ uint8_t FPS_GT511C3::GetTemplate(uint16_t id, uint8_t data[])
 // Parameter: the ID number to upload
 // Parameter: Check for duplicate fingerprints already on fps
 // Returns:
-// -1 - Undefined error (shouldn't ever happen)
 //	0 - Uploaded ok (no duplicate if enabled)
 //	1 - ID duplicated
 //	2 - Invalid position
 //	3 - Communications error
 //	4 - Device error
+//	5 - Undefined error (shouldn't ever happen)
 uint16_t FPS_GT511C3::SetTemplate(uint8_t tmplt[], uint16_t id, bool duplicateCheck)
 {
 #if FPS_DEBUG
@@ -1006,7 +1006,7 @@ uint16_t FPS_GT511C3::SetTemplate(uint8_t tmplt[], uint16_t id, bool duplicateCh
             delete rp;
             if (error == Response_Packet::ErrorCodes::NACK_COMM_ERR) return 3;
             if (error == Response_Packet::ErrorCodes::NACK_DEV_ERR) return 4;
-            return -1; // Undefined error
+            return 5; // Undefined error
         }
 	}
 }

@@ -336,12 +336,12 @@ class FPS_GT511C3
 	// Parameter: the ID number to upload
 	// Parameter: Check for duplicate fingerprints already on fps
     // Returns:
-    // -1 - Undefined error (shouldn't ever happen)
     //	0 - Uploaded ok (no duplicate if enabled)
     //	1 - ID duplicated
     //	2 - Invalid position
     //	3 - Communications error
     //	4 - Device error
+	//	5 - Undefined error (shouldn't ever happen)
 	uint16_t SetTemplate(uint8_t tmplt[], uint16_t id, bool duplicateCheck);
 #ifndef __GNUC__
 	#pragma endregion
