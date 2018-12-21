@@ -988,6 +988,7 @@ uint16_t FPS_GT511C3::SetTemplate(uint8_t tmplt[], uint16_t id, bool duplicateCh
 	} else
 	{
 		Data_Packet dp(tmplt, 498, _serial); // This makes the data packet and sends it immediately
+		delete rp;
 	    rp = GetResponse();
 	    if (rp->ACK)
         {
