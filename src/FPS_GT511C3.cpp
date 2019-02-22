@@ -602,9 +602,9 @@ uint8_t FPS_GT511C3::Enroll1()
 	{
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_ENROLL_FAILED) retval = 1;
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_BAD_FINGER) retval = 2;
-	}
+	} else retval = 0;
 	delete rp;
-	if (rp->ACK) return 0; else return retval;
+	return retval;
 }
 
 // Gets the Second scan of an enrollment
@@ -633,9 +633,9 @@ uint8_t FPS_GT511C3::Enroll2()
 	{
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_ENROLL_FAILED) retval = 1;
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_BAD_FINGER) retval = 2;
-	}
+	} else retval = 0;
 	delete rp;
-	if (rp->ACK) return 0; else return retval;
+	return retval;
 }
 
 // Gets the Third scan of an enrollment
@@ -665,9 +665,9 @@ uint8_t FPS_GT511C3::Enroll3()
 	{
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_ENROLL_FAILED) retval = 1;
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_BAD_FINGER) retval = 2;
-	}
+	} else retval = 0;
 	delete rp;
-	if (rp->ACK) return 0; else return retval;
+	return retval;
 }
 
 // Checks to see if a finger is pressed on the FPS

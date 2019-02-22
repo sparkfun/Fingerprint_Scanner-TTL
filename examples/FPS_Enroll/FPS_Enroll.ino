@@ -101,20 +101,20 @@ void Enroll()
 	if (bret != false)
 	{
 		Serial.println("Remove finger");
-		fps.Enroll1(); 
+		iret = fps.Enroll1(); 
 		while(fps.IsPressFinger() == true) delay(100);
 		Serial.println("Press same finger again");
 		while(fps.IsPressFinger() == false) delay(100);
 		bret = fps.CaptureFinger(true);
-		if (bret != false)
+		if (bret != false && !iret)
 		{
 			Serial.println("Remove finger");
-			fps.Enroll2();
+			iret = fps.Enroll2();
 			while(fps.IsPressFinger() == true) delay(100);
 			Serial.println("Press same finger yet again");
 			while(fps.IsPressFinger() == false) delay(100);
 			bret = fps.CaptureFinger(true);
-			if (bret != false)
+			if (bret != false && !iret)
 			{
 				Serial.println("Remove finger");
 				iret = fps.Enroll3();
@@ -128,7 +128,17 @@ void Enroll()
 					Serial.println(iret);
 				}
 			}
+			else if (iret)
+			{
+				Serial.print("Enrolling Failed with error code:");
+				Serial.println(iret);
+			}
 			else Serial.println("Failed to capture third finger");
+		}
+		else if (iret)
+		{
+			Serial.print("Enrolling Failed with error code:");
+			Serial.println(iret);
 		}
 		else Serial.println("Failed to capture second finger");
 	}
