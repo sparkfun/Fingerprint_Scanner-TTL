@@ -3,7 +3,7 @@ Fingerprint Scanner-TTL
 
 <table class="table table-hover table-striped table-bordered">
   <tr align="center">
-    <td><a href="https://www.sparkfun.com/products/14518"><img src="https://cdn.sparkfun.com//assets/parts/1/2/5/9/1/14518-01.jpg" title="Fingerprint Scanner - TTL (GT-521F32)"></a></td>	
+    <td><a href="https://www.sparkfun.com/products/14518"><img src="https://cdn.sparkfun.com//assets/parts/1/2/5/9/1/14518-Fingerprint_Scanner_-_TTL__GT-521F32__-01.jpg" title="Fingerprint Scanner - TTL (GT-521F32)"></a></td>	
     <td><a href="https://www.sparkfun.com/products/14585"><img src="https://cdn.sparkfun.com//assets/parts/1/2/7/3/2/14585-Fingerprint_Scanner_-_TTL__GT-521F52_-01.jpg" title="Fingerprint Scanner - TTL (GT-521F52)"></a></td>
   <td><a href="https://www.sparkfun.com/products/11792"><img src="https://cdn.sparkfun.com//assets/parts/8/0/7/3/11792-04a.jpg" title="Fingerprint Scanner - TTL (GT-511C3)"></a></td>
   </tr>
