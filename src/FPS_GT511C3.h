@@ -156,7 +156,7 @@ class Response_Packet
 class Data_Packet
 {
 public:
-	Data_Packet(uint8_t buffer[], uint16_t length, SoftwareSerial _serial);
+	Data_Packet(uint8_t buffer[], uint16_t length, SoftwareSerial& _serial);
     Data_Packet(uint8_t buffer[]);
     uint16_t checksum = 0;
     static const uint8_t DATA_START_CODE_1 = 0x5A;	// Static byte to mark the beginning of a data packet	-	never changes

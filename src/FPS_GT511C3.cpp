@@ -218,7 +218,7 @@ uint8_t Response_Packet::GetLowByte(uint16_t w)
 #pragma region -= Data_Packet =-
 #endif  //__GNUC__
 // creates a data packet and send it to the finger print scanner
-Data_Packet::Data_Packet(uint8_t buffer[], uint16_t length, SoftwareSerial _serial)
+Data_Packet::Data_Packet(uint8_t buffer[], uint16_t length, SoftwareSerial& _serial)
 {
 	
 	uint8_t* data_code= new uint8_t[4];
@@ -1110,6 +1110,7 @@ void FPS_GT511C3::Start()
             break;
         }
     }
+	delete packetbytes;
 
 #if FPS_DEBUG
 	Serial.print(F("Connection established succesfully. FPS baud rate was: "));
